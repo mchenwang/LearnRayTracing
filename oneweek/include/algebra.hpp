@@ -11,6 +11,8 @@ struct vec3 {
     T x, y, z;
     vec3() noexcept : x(0), y(0), z(0) {}
     vec3(T x_, T y_, T z_) noexcept : x(x_), y(y_), z(z_) {}
+    template<typename U>
+    vec3(vec3<U>&& v) noexcept : x((T)v.x), y((T)v.y), z((T)v.z) {}
 
     T operator[] (const size_t i) const {
         if(i > 3 || i < 0) std::cerr << i << " vec access error\n";
@@ -25,17 +27,20 @@ struct vec3 {
         return z;
     }
 
-    vec3<T> operator+(const vec3<T>& v) {
+    vec3<T> operator+(const vec3<T>& v) const {
         return vec3<T>(x + v.x, y + v.y, z + v.z);
     }
-    vec3<T> operator-(const vec3<T>& v) {
+    vec3<T> operator-(const vec3<T>& v) const {
         return vec3<T>(x - v.x, y - v.y, z - v.z);
     }
-    vec3<T> operator*(const vec3<T>& v) {
+    vec3<T> operator*(const vec3<T>& v) const {
         return vec3<T>(x * v.x, y * v.y, z * v.z);
     }
-    vec3<T> operator*(const T t) {
+    vec3<T> operator*(const T t) const {
         return vec3<T>(x * t, y * t, z * t);
+    }
+    vec3<T> operator/(const T t) const {
+        return vec3<T>(x / t, y / t, z / t);
     }
     vec3<T>& operator+=(const vec3<T>& v) {
         x += v.x, y += v.y, z += v.z;
@@ -51,6 +56,16 @@ struct vec3 {
 
     double length() const { return sqrt(length2()); }
     double length2() const { return x * x + y * y + z * z; }
+
+    vec3<T> normalize() const {
+        double t = length();
+        return vec3<T>((double)x / t, (double)y / t, (double)z / t);
+    }
+    vec3<T>& normalized() {
+        double t = length();
+        x /= t, y /= t, z /= t;
+        return *this;
+    }
 };
 
 template<typename T, typename U>

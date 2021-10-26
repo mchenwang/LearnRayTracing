@@ -3,14 +3,14 @@
 
 #include "algebra.hpp"
 
-struct ray
+struct Ray
 {
     point3d o; // 光源
     vec3d dir; // 方向
-    ray() = default;
-    ray(const point3d& o_, const vec3d& dir_) noexcept : o(o_), dir(dir_) {}
+    Ray() = default;
+    Ray(const point3d& o_, const vec3d& dir_) noexcept : o(o_), dir(dir_) {}
 
-    point3d at(const double t) {
+    point3d at(const double t) const {
         return o + dir * t;
     }
 };

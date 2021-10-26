@@ -4,8 +4,8 @@
 #include <fstream>
 
 struct Color {
-    float r, g, b;
-    Color(float r_=0, float g_=0, float b_=0) noexcept
+    double r, g, b;
+    Color(double r_=0, double g_=0, double b_=0) noexcept
     : r(r_), g(g_), b(b_) {}
 
     template<typename Tstream>
@@ -15,8 +15,9 @@ struct Color {
     }
 };
 
-Color operator*(const Color& c, float x) { return Color(c.r * x, c.g * x, c.b * x); }
-Color operator*(float x, const Color& c) { return Color(c.r * x, c.g * x, c.b * x); }
+Color operator*(const Color& c, double x) { return Color(c.r * x, c.g * x, c.b * x); }
+Color operator*(double x, const Color& c) { return Color(c.r * x, c.g * x, c.b * x); }
+Color operator+(const Color& a, const Color& b) { return Color(a.r + b.r, a.g + b.g, a.b + b.b); }
 
 
 class PPMImage {
