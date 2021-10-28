@@ -66,6 +66,11 @@ struct vec3 {
         x /= t, y /= t, z /= t;
         return *this;
     }
+
+    bool is_zero_vec() const {
+        constexpr double EPS = 0.000000001;
+        return std::abs(x) < EPS && std::abs(y) < EPS && std::abs(z) < EPS;
+    }
 };
 
 template<typename T, typename U>
@@ -81,5 +86,12 @@ using vec3d = vec3<double>;
 using vec3i = vec3<int>;
 using point3d = vec3d;
 using point3i = vec3i;
+
+inline double get_random(double min = 0., double max = 1.) {
+    return min + (max - min) * (rand() / (RAND_MAX + 1.));
+}
+inline vec3d get_random_vec3d(double min = 0., double max = 1.) {
+    return vec3d(get_random(min, max), get_random(min, max), get_random(min, max));
+}
 
 #endif
