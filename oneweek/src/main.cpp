@@ -10,7 +10,7 @@
 using namespace std;
 
 PPMImage image(default_height, default_width);
-Camera camera(point3d(-2,2,5), default_up_dir, default_look_at);
+Camera camera(point3d(-2,2,1), default_up_dir, default_look_at);
 vector<shared_ptr<Hittable>> objs;
 
 bool world_hit(const Ray& ray, hit_info& hit) {
@@ -55,7 +55,7 @@ DWORD WINAPI render(LPVOID range_) {
             for (int i = 0; i < samples_per_pixel; i++){
                 double v = (double)(y + get_random()) / (double)(h - 1.);
                 double u = (double)(x + get_random()) / (double)(w - 1.);
-                c = c + ray_cast(Ray(camera.o, camera.get_ray_dir(u, v)));
+                c = c + ray_cast(camera.get_ray(u, v));
             }
             // Gamma Correction
             c = Color(std::pow(c.r/samples_per_pixel, 0.45), std::pow(c.g/samples_per_pixel, 0.45), std::pow(c.b/samples_per_pixel, 0.45));
@@ -74,9 +74,9 @@ void render(){
         for (int x = 0; x < w; x++) {
             Color c;
             for (int i = 0; i < samples_per_pixel; i++){
-                double v = (double)(y + get_random() - h * 0.5) / (h * 0.5);
-                double u = (double)(x + get_random() - w * 0.5) / (w * 0.5) * aspect_ratio;
-                c = c + ray_cast(Ray(camera.o, camera.get_ray_dir(u, v)));
+                double v = (double)(y + get_random()) / (double)(h - 1.);
+                double u = (double)(x + get_random()) / (double)(w - 1.);
+                c = c + ray_cast(camera.get_ray(u, v));
             }
             // Gamma Correction
             c = Color(std::pow(c.r/samples_per_pixel, 0.45), std::pow(c.g/samples_per_pixel, 0.45), std::pow(c.b/samples_per_pixel, 0.45));
