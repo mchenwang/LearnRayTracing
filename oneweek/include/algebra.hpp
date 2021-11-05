@@ -81,6 +81,10 @@ template<typename T, typename U>
 double dot(const vec3<T>& v1, const vec3<U>& v2) {
     return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
 }
+template<typename T>
+vec3<double> operator*(const double x, const vec3<T>& v) {
+    return vec3<double>(x * v.x, x * v.y, x * v.z);
+}
 
 using vec3d = vec3<double>;
 using vec3i = vec3<int>;

@@ -3,7 +3,6 @@
 
 #include "algebra.hpp"
 #include "ray.hpp"
-#include "hittable.hpp"
 #include "material.hpp"
 #include <memory>
 
@@ -14,6 +13,7 @@ class Hittable;
 struct hit_info{
     double t;
     point3d point;
+    bool inside_obj;
     vec3d normal;
     vec3d cast_ray_dir;
     shared_ptr<Hittable> obj;
@@ -63,12 +63,23 @@ public:
         ret.normal = (ret.point - o).normalize();
         if (dot(ret.normal, ray.dir) > 0.) {
             ret.normal = vec3d() - ret.normal;
+            ret.inside_obj = true;
         }
+        else ret.inside_obj = false;
         return true;
     }
 
     bool scatter(Ray& ray_out, const hit_info& hit) const override {
-        material->scatter(hit.point, hit.normal, hit.cast_ray_dir, ray_out);
+        if (std::dynamic_pointer_cast<Dielectrics>(material)) {
+            auto dielectrics_material = std::dynamic_pointer_cast<Dielectrics>(material);
+            double refraction_ratio;
+            // 从介质射向空气，当r<0时，指当前物体是空心的，与实心物体处理相反
+            if ((hit.inside_obj || get_radius() < 0) && !(hit.inside_obj && get_radius() < 0)) refraction_ratio = dielectrics_material->get_refraction_eta() / global_air.get_refraction_eta();
+            else refraction_ratio = global_air.get_refraction_eta() / dielectrics_material->get_refraction_eta();
+            
+            dielectrics_material->scatter(hit.point, hit.normal, hit.cast_ray_dir, ray_out, refraction_ratio);
+        }
+        else material->scatter(hit.point, hit.normal, hit.cast_ray_dir, ray_out);
         return true;
     }
 };
