@@ -1,5 +1,4 @@
-#define MUTILTHREAD
-
+#include "global.hpp"
 #include <iostream>
 #include <vector>
 #include <memory>
@@ -10,13 +9,8 @@
 #include "hittable.hpp"
 using namespace std;
 
-constexpr double aspect_ratio = 16.0 / 9.0;
-constexpr int default_height = 900;
-constexpr int default_width = default_height * aspect_ratio;
-constexpr int samples_per_pixel = 100;
-constexpr int max_depth = 50;
 PPMImage image(default_height, default_width);
-Camera camera;
+Camera camera(point3d(-2,2,5), default_up_dir, default_look_at);
 vector<shared_ptr<Hittable>> objs;
 
 bool world_hit(const Ray& ray, hit_info& hit) {
@@ -59,8 +53,8 @@ DWORD WINAPI render(LPVOID range_) {
         for (int x = range->i_from; x < range->i_to; x++) {
             Color c;
             for (int i = 0; i < samples_per_pixel; i++){
-                double v = (double)(y + get_random() - h * 0.5) / (h * 0.5);
-                double u = (double)(x + get_random() - w * 0.5) / (w * 0.5) * aspect_ratio;
+                double v = (double)(y + get_random()) / (double)(h - 1.);
+                double u = (double)(x + get_random()) / (double)(w - 1.);
                 c = c + ray_cast(Ray(camera.o, camera.get_ray_dir(u, v)));
             }
             // Gamma Correction
