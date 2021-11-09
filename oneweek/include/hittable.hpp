@@ -70,6 +70,7 @@ public:
     }
 
     bool scatter(Ray& ray_out, const hit_info& hit) const override {
+        scatter_info* info;
         if (std::dynamic_pointer_cast<Dielectrics>(material)) {
             auto dielectrics_material = std::dynamic_pointer_cast<Dielectrics>(material);
             double refraction_ratio;
@@ -77,9 +78,13 @@ public:
             if ((hit.inside_obj || get_radius() < 0) && !(hit.inside_obj && get_radius() < 0)) refraction_ratio = dielectrics_material->get_refraction_eta() / global_air.get_refraction_eta();
             else refraction_ratio = global_air.get_refraction_eta() / dielectrics_material->get_refraction_eta();
             
-            dielectrics_material->scatter(hit.point, hit.normal, hit.cast_ray_dir, ray_out, refraction_ratio);
+            info = new dielectrics_scatter_info(hit.point, hit.normal, hit.cast_ray_dir, refraction_ratio);
         }
-        else material->scatter(hit.point, hit.normal, hit.cast_ray_dir, ray_out);
+        else info = new scatter_info(hit.point, hit.normal, hit.cast_ray_dir);
+        material->scatter(info);
+        ray_out = info->scatter_ray;
+
+        if (info != nullptr) delete info;
         return true;
     }
 };

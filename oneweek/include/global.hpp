@@ -2,6 +2,7 @@
 #define __GLOBAL_H__
 
 #include "algebra.hpp"
+#include <cmath>
 
 #define MUTILTHREAD
 
