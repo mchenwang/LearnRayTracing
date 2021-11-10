@@ -5,4 +5,4 @@ A repository for learning ray tracing.
 
 > 别人的 One Weekend，我的 Half Year。。。
 
-![](.\oneweek\image.jpg)
+![](./oneweek/image.jpg)
