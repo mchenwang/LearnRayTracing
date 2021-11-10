@@ -10,7 +10,7 @@
 using namespace std;
 
 PPMImage image(default_height, default_width);
-Camera camera(point3d(-2,2,1), default_up_dir, default_look_at);
+Camera camera(point3d(13,2,3), default_up_dir, default_look_at, 20, 0.05);
 vector<shared_ptr<Hittable>> objs;
 
 bool world_hit(const Ray& ray, hit_info& hit) {
@@ -53,8 +53,8 @@ DWORD WINAPI render(LPVOID range_) {
         for (int x = range->i_from; x < range->i_to; x++) {
             Color c;
             for (int i = 0; i < samples_per_pixel; i++){
-                double v = (double)(y + get_random()) / (double)(h - 1.);
-                double u = (double)(x + get_random()) / (double)(w - 1.);
+                double v = (double)(y + get_random()) / (h - 1.);
+                double u = (double)(x + get_random()) / (w - 1.);
                 c = c + ray_cast(camera.get_ray(u, v));
             }
             // Gamma Correction
@@ -74,8 +74,8 @@ void render(){
         for (int x = 0; x < w; x++) {
             Color c;
             for (int i = 0; i < samples_per_pixel; i++){
-                double v = (double)(y + get_random()) / (double)(h - 1.);
-                double u = (double)(x + get_random()) / (double)(w - 1.);
+                double v = (double)(y + get_random()) / (h - 1.);
+                double u = (double)(x + get_random()) / (w - 1.);
                 c = c + ray_cast(camera.get_ray(u, v));
             }
             // Gamma Correction
@@ -87,21 +87,54 @@ void render(){
 #endif
 
 void init_world() {
-    auto material_ground = make_shared<Lambertian>(Color(0.8, 0.8, 0.0));
-    auto material_center = make_shared<Lambertian>(Color(0.7, 0.3, 0.3));
-    // auto material_center = make_shared<Dielectrics>(1.5);
-    // auto material_left   = make_shared<Metal>(Color(0.8, 0.8, 0.8), 0.1);
-    auto material_left   = make_shared<Dielectrics>(1.5);
-    auto material_right  = make_shared<Metal>(Color(0.8, 0.6, 0.2), 0.9);
+    // auto material_ground = make_shared<Lambertian>(Color(0.8, 0.8, 0.0));
+    // auto material_center = make_shared<Lambertian>(Color(0.7, 0.3, 0.3));
+    // auto material_left   = make_shared<Dielectrics>(1.5);
+    // auto material_right  = make_shared<Metal>(Color(0.8, 0.6, 0.2), 0.9);
 
-    objs.push_back(make_shared<Sphere>(point3d( 0., -100.5, .0), 100.0, material_ground));
-    objs.push_back(make_shared<Sphere>(point3d( 0.,    0.0, .0),   0.5, material_center));
-    objs.push_back(make_shared<Sphere>(point3d(-1.,    0.0, .0),   0.5, material_left));
-    objs.push_back(make_shared<Sphere>(point3d(-1.,    0.0, .0),  -0.4, material_left));
-    objs.push_back(make_shared<Sphere>(point3d( 1.,    0.0, .0),   0.5, material_right));
+    // objs.push_back(make_shared<Sphere>(point3d( 0., -100.5, .0), 100.0, material_ground));
+    // objs.push_back(make_shared<Sphere>(point3d( 0.,    0.0, .0),   0.5, material_center));
+    // objs.push_back(make_shared<Sphere>(point3d(-1.,    0.0, .0),   0.5, material_left));
+    // objs.push_back(make_shared<Sphere>(point3d(-1.,    0.0, .0),  -0.4, material_left));
+    // objs.push_back(make_shared<Sphere>(point3d( 1.,    0.0, .0),   0.5, material_right));
 
-    // objs.push_back(make_shared<Sphere>(point3d(), 0.5));
-    // objs.push_back(make_shared<Sphere>(point3d(0, -100.5, 0), 100));
+    auto material_ground = make_shared<Lambertian>(Color(0.5, 0.5, 0.5));
+    objs.push_back(make_shared<Sphere>(point3d(0, -1000, 0), 1000, material_ground));
+
+    for (int i = -11; i < 11; i++) {
+        for (int j = -11; j < 11; j++) {
+            point3d shpere_center(i + 0.9 * get_random(), 0.2, j + 0.9 * get_random());
+
+            if ((shpere_center - point3d(4, .2, 0)).length() > 0.9) {
+                double choose_material = get_random();
+                shared_ptr<Material> material;
+
+                if (choose_material < 0.8) {
+                    auto diffuse_color = Color(get_random(), get_random(), get_random());
+                    material = make_shared<Lambertian>(diffuse_color);
+                }
+                else if (choose_material < 0.95) {
+                    auto metal_color = Color(get_random(0.5), get_random(0.5), get_random(0.5));
+                    auto fuzz = get_random() > 0.5 ? 0. : get_random(0, .5);
+                    material = make_shared<Metal>(metal_color, fuzz);
+                }
+                else {
+                    material = make_shared<Dielectrics>(1.5);
+                }
+
+                objs.push_back(make_shared<Sphere>(shpere_center, 0.2, material));
+            }
+        }
+    }
+
+    auto material1 = make_shared<Dielectrics>(1.5);
+    objs.push_back(make_shared<Sphere>(point3d(0, 1, 0), 1, material1));
+
+    auto material2 = make_shared<Lambertian>(Color(0.4, 0.2, 0.1));
+    objs.push_back(make_shared<Sphere>(point3d(-4, 1, 0), 1, material2));
+
+    auto material3 = make_shared<Metal>(Color(1, 1, 1));
+    objs.push_back(make_shared<Sphere>(point3d(4, 1, 0), 1, material3));
 }
 
 #ifdef MUTILTHREAD
