@@ -10,7 +10,7 @@
 using namespace std;
 
 PPMImage image(default_height, default_width);
-Camera camera(point3d(13,2,3), default_up_dir, default_look_at, 20, 0.05);
+Camera camera(point3d(13,2,3), default_up_dir, default_look_at, 20, 0.02, 13.3);
 vector<shared_ptr<Hittable>> objs;
 
 bool world_hit(const Ray& ray, hit_info& hit) {
@@ -48,7 +48,7 @@ DWORD WINAPI render(LPVOID range_) {
     int h = image.get_height();
     int w = image.get_width();
     RenderThreadData* range = (RenderThreadData*)range_;
-    //srand(range->i_from);
+    srand(range->i_from);
     for (int y = 0; y < h; y++) {
         for (int x = range->i_from; x < range->i_to; x++) {
             Color c;
@@ -101,11 +101,29 @@ void init_world() {
     auto material_ground = make_shared<Lambertian>(Color(0.5, 0.5, 0.5));
     objs.push_back(make_shared<Sphere>(point3d(0, -1000, 0), 1000, material_ground));
 
+    auto big_sphere_o1 = point3d(0, 1, 0);
+    auto big_sphere_o2 = point3d(-4, 1, 0);
+    auto big_sphere_o3 = point3d(4, 1, 0);
+
+    auto material1 = make_shared<Dielectrics>(1.5);
+    objs.push_back(make_shared<Sphere>(big_sphere_o1, 1, material1));
+    objs.push_back(make_shared<Sphere>(big_sphere_o1, -0.9, material1));
+
+    auto material2 = make_shared<Lambertian>(Color(0.4, 0.2, 0.1));
+    objs.push_back(make_shared<Sphere>(big_sphere_o2, 1, material2));
+
+    auto material3 = make_shared<Metal>(Color(1, 1, 1));
+    objs.push_back(make_shared<Sphere>(big_sphere_o3, 1, material3));
+
+    auto can_be_created = [&big_sphere_o1, &big_sphere_o2, &big_sphere_o3](const point3d& o) {
+        return (big_sphere_o1 - o).length2() > 1 && (big_sphere_o2 - o).length2() > 1 && (big_sphere_o3 - o).length2() > 1;
+    };
+
     for (int i = -11; i < 11; i++) {
         for (int j = -11; j < 11; j++) {
             point3d shpere_center(i + 0.9 * get_random(), 0.2, j + 0.9 * get_random());
 
-            if ((shpere_center - point3d(4, .2, 0)).length() > 0.9) {
+            if (can_be_created(shpere_center)) {
                 double choose_material = get_random();
                 shared_ptr<Material> material;
 
@@ -126,15 +144,6 @@ void init_world() {
             }
         }
     }
-
-    auto material1 = make_shared<Dielectrics>(1.5);
-    objs.push_back(make_shared<Sphere>(point3d(0, 1, 0), 1, material1));
-
-    auto material2 = make_shared<Lambertian>(Color(0.4, 0.2, 0.1));
-    objs.push_back(make_shared<Sphere>(point3d(-4, 1, 0), 1, material2));
-
-    auto material3 = make_shared<Metal>(Color(1, 1, 1));
-    objs.push_back(make_shared<Sphere>(point3d(4, 1, 0), 1, material3));
 }
 
 #ifdef MUTILTHREAD
@@ -162,6 +171,8 @@ int main(int argc, char *argv[])
     if (argc > 1) {
         image = PPMImage(atoi(argv[1]), argc > 2 ? atoi(argv[2]) : atoi(argv[1]) * aspect_ratio);
     }
+
+    srand((unsigned)time(NULL));
 
     init_world();
     
