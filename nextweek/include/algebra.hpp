@@ -3,6 +3,8 @@
 
 #include <type_traits>
 
+constexpr double EPS = 0.000000001;
+
 template<typename T>
 struct vec3 {
     static_assert(std::is_same<T, int>::value ||
@@ -59,6 +61,10 @@ struct vec3 {
 
     vec3<T> normalize() const {
         double t = length();
+        if (t < EPS) {
+            std::cerr<<"/0\n";
+            return *this;
+        }
         return vec3<T>((double)x / t, (double)y / t, (double)z / t);
     }
     vec3<T>& normalized() {
@@ -68,7 +74,6 @@ struct vec3 {
     }
 
     bool is_zero_vec() const {
-        constexpr double EPS = 0.000000001;
         return std::abs(x) < EPS && std::abs(y) < EPS && std::abs(z) < EPS;
     }
 };

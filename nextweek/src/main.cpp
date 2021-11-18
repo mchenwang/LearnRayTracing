@@ -21,6 +21,7 @@ bool world_hit(const Ray& ray, hit_info& hit) {
         }
     }
     hit.cast_ray_dir = ray.dir;
+    hit.ray_time = ray.time;
     return hit_flag;
 }
 

@@ -110,7 +110,11 @@ public:
                     double lr = GetDouble(line);
                     std::getline(f, line);
                     double dist = GetDouble(line);
-                    camera = make_shared<Camera>(o, up_dir, look_at, vfov, lr, dist);
+                    std::getline(f, line);
+                    double t1 = GetDouble(line);
+                    std::getline(f, line);
+                    double t2 = GetDouble(line);
+                    camera = make_shared<Camera>(o, up_dir, look_at, vfov, lr, dist, t1, t2);
                 }
                 else if (line.compare("Lambertian") == 0) {
                     std::getline(f, line);
@@ -142,10 +146,30 @@ public:
                         objs.push_back(make_shared<Sphere>(o, r, material));
                     }
                 }
+                else if (line.compare("MovingSphere") == 0) {
+                    std::getline(f, line);
+                    point3d o1 = GetPoint3d(line);
+                    std::getline(f, line);
+                    point3d o2 = GetPoint3d(line);
+                    std::getline(f, line);
+                    double r = GetDouble(line);
+                    std::getline(f, line);
+                    double t1 = GetDouble(line);
+                    std::getline(f, line);
+                    double t2 = GetDouble(line);
+                    std::getline(f, line);
+                    int material_index = (int) GetDouble(line) -1 ;
+                    if (material_index < 0 || material_index >= materials.size()) std::cerr << "Sphere material error!\n";
+                    else {
+                        auto material = materials[material_index];
+                        objs.push_back(make_shared<MovingSphere>(t1, o1, t2, o2, r, material));
+                    }
+                }
             }
         }
 
         f.close();
+        std::cout << "read configuration end.\n";
     }
 
     shared_ptr<Camera>& GetCamera() { return camera; }

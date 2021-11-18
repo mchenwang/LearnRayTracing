@@ -11,14 +11,15 @@ struct Camera
     point3d look_at; // 相机看向的点
     double vfov; // 视野角度，vertical field-of-view in degrees，视锥顶角的一半
     double lens_r; // 透镜的半径
+    double t1, t2; // 快门的开始/结束时间
 
     vec3d cx, cy, cz;
 
-    Camera() noexcept : o(default_o), up_dir(default_up_dir), look_at(default_look_at), vfov(default_vfov), lens_r(1. )
+    Camera() noexcept : o(default_o), up_dir(default_up_dir), look_at(default_look_at), vfov(default_vfov), lens_r(1.), t1(0.), t2(0.)
     { set_view_transform_matrix((o - look_at).length()); }
     Camera(const point3d& o_, const vec3d& up_dir_, const point3d& look_at_, const double vfov_ = default_vfov,
-             const double lr = 1., const double dist_to_focus = 1.) noexcept
-    : o(o_), up_dir(up_dir_), look_at(look_at_), vfov(vfov_), lens_r(lr)
+             const double lr = 1., const double dist_to_focus = 1., const double t1_ = 0., const double t2_ = 0.) noexcept
+    : o(o_), up_dir(up_dir_), look_at(look_at_), vfov(vfov_), lens_r(lr), t1(t1_), t2(t2_)
     { set_view_transform_matrix(dist_to_focus); }
 
     point3d lower_left_corner;
@@ -43,7 +44,7 @@ struct Camera
         auto disk = (point3d(get_random(-1, 1), get_random(-1, 1), 0.)).normalize() * lens_r;
         vec3d offset = disk.x * cx + disk.y * cy;
         point3d ro = o + offset;
-        return Ray(ro, (vertical * u + horizontal * v + lower_left_corner - ro).normalize());
+        return Ray(ro, (vertical * u + horizontal * v + lower_left_corner - ro).normalize(), get_random(t1, t2));
     }
 };
 
