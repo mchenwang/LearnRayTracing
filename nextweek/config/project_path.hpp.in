@@ -1,0 +1,6 @@
+#ifndef __PROJECT_PATH_H__
+#define __PROJECT_PATH_H__
+
+const char * const project_path = "${CMAKE_SOURCE_DIR}";
+
+#endif

@@ -1,0 +1,5 @@
+build
+target
+.vscode
+*.ppm
+config/project_path.hpp
