@@ -2,6 +2,7 @@
 #define __ALGEBRA_H__
 
 #include <type_traits>
+#include <algorithm>
 
 constexpr double EPS = 0.000000001;
 

@@ -14,7 +14,7 @@
 #include "project_path.hpp"
 
 #define MUTILTHREAD
-#define INIT_SAMPLE_WORLD
+#define INIT_SAMPLE_WORLDx
 #define INIT_WORLD_WITH_CONFIG
 
 using std::shared_ptr;
@@ -116,6 +116,7 @@ public:
                     double t2 = GetDouble(line);
                     camera = make_shared<Camera>(o, up_dir, look_at, vfov, lr, dist, t1, t2);
                 }
+                #ifdef INIT_SAMPLE_WORLD
                 else if (line.compare("Lambertian") == 0) {
                     std::getline(f, line);
                     Color color = GetColor(line);
@@ -165,6 +166,7 @@ public:
                         objs.push_back(make_shared<MovingSphere>(t1, o1, t2, o2, r, material));
                     }
                 }
+                #endif
             }
         }
 

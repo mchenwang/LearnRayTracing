@@ -2,26 +2,31 @@
 #include <iostream>
 #include <vector>
 #include <Windows.h>
+#include "BVH.hpp"
 using namespace std;
 
 PPMImage image(default_height, default_width);
 shared_ptr<Camera> camera;
 vector<shared_ptr<Hittable>> objs;
+shared_ptr<BVH_Node> bvh_root;
 
 bool world_hit(const Ray& ray, hit_info& hit) {
     bool hit_flag = false;
     double t_min = 0.000001;
     double t_max = std::numeric_limits<double>::infinity();
 
-    for (auto& obj : objs) {
-        if (obj->hit(ray, t_min, t_max, hit)) {
-            t_max = hit.t;
-            hit_flag = 1;
-            hit.obj = obj;
-        }
+    if (bvh_root->hit(ray, t_min, t_max, hit)) {
+        hit.cast_ray_dir = ray.dir;
+        hit.ray_time = ray.time;
+        hit_flag = 1;
     }
-    hit.cast_ray_dir = ray.dir;
-    hit.ray_time = ray.time;
+    // for (auto& obj : objs) {
+    //     if (obj->hit(ray, t_min, t_max, hit)) {
+    //         t_max = hit.t;
+    //         hit_flag = 1;
+    //         hit.obj = obj;
+    //     }
+    // }
     return hit_flag;
 }
 
@@ -105,7 +110,7 @@ void init_world(ConfigManager* configManager) {
 #else
 void init_world(ConfigManager* configManager) {
     if (configManager == nullptr) {
-        camera = make_shared<Camera>(point3d(13,2,3), default_up_dir, default_look_at, 20, 0.02, 13.3);
+        camera = make_shared<Camera>(point3d(13,2,3), default_up_dir, default_look_at, 20, 0.02, 13.3, 0, 1);
     }
     else {
         camera = configManager->GetCamera();
@@ -134,9 +139,9 @@ void init_world(ConfigManager* configManager) {
 
     for (int i = -11; i < 11; i++) {
         for (int j = -11; j < 11; j++) {
-            point3d shpere_center(i + 0.9 * get_random(), 0.2, j + 0.9 * get_random());
+            point3d sphere_center(i + 0.9 * get_random(), 0.2, j + 0.9 * get_random());
 
-            if (can_be_created(shpere_center)) {
+            if (can_be_created(sphere_center)) {
                 double choose_material = get_random();
                 shared_ptr<Material> material;
 
@@ -153,7 +158,14 @@ void init_world(ConfigManager* configManager) {
                     material = make_shared<Dielectrics>(1.5);
                 }
 
-                objs.push_back(make_shared<Sphere>(shpere_center, 0.2, material));
+                double is_moving = get_random();
+                if (is_moving < 0.7) {
+                    point3d next_center;
+                    if (is_moving < 0.35) next_center = sphere_center + vec3d(0, get_random(0, 0.4), 0);
+                    else next_center = sphere_center + vec3d(0, 0, get_random(0, 0.4));
+                    objs.push_back(make_shared<MovingSphere>(0, sphere_center, 1, next_center, 0.2, material));
+                }
+                else objs.push_back(make_shared<Sphere>(sphere_center, 0.2, material));
             }
         }
     }
@@ -196,7 +208,8 @@ int main(int argc, char *argv[])
     #else
     init_world(nullptr);
     #endif
-    
+
+    bvh_root = make_shared<BVH_Node>(objs, 0, objs.size(), 0, 1);
 
     srand((unsigned)time(NULL));
     

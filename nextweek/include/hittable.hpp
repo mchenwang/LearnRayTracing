@@ -4,8 +4,9 @@
 #include "algebra.hpp"
 #include "ray.hpp"
 #include "material.hpp"
+#include "BVH.hpp"
 
-class Hittable;
+// class Hittable;
 
 struct hit_info{
     double t;
@@ -25,6 +26,7 @@ public:
     Hittable(std::shared_ptr<Material> m) noexcept : material(m) {}
     virtual bool hit(const Ray& ray, double t_min, double t_max, hit_info& ret) const = 0;
     virtual bool scatter(Ray& ray_out, const hit_info& hit) const = 0;
+    virtual bool bounding_box(const double, const double, AABB& output_box) const = 0;
     Color get_material_attenuation_coef() const { return material->get_color_attenuation_coef(); }
 };
 
@@ -84,6 +86,11 @@ public:
         ray_out = info->scatter_ray;
         return true;
     }
+
+    bool bounding_box(const double, const double, AABB& output_box) const override {
+        output_box = AABB(o - vec3d(r, r, r), o + vec3d(r, r, r));
+        return true;
+    }
 };
 
 class MovingSphere : public Sphere {
@@ -100,6 +107,15 @@ public:
         return o + ((time - t1) / (t2 - t1)) * o_move_dir;
     }
     double get_radius() const { return r; }
+
+    bool bounding_box(const double time1, const double time2, AABB& output_box) const override {
+        auto o1 = get_origin(time1);
+        auto o2 = get_origin(time2);
+        AABB b1(o1 - vec3d(r, r, r), o1 + vec3d(r, r, r));
+        AABB b2(o2 - vec3d(r, r, r), o2 + vec3d(r, r, r));
+        output_box = AABB::surrounding_box(b1, b2);
+        return true;
+    }
 };
 
 #endif
