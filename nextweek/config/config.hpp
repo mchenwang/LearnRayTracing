@@ -28,6 +28,8 @@ class ConfigManager {
     std::vector<shared_ptr<Material>> materials;
     std::vector<shared_ptr<Hittable>> objs;
 
+    bool use_bvh = false;
+
     double GetDouble(string& line, int& index) const {
         if (index >= line.length()) {
             std::cerr << "GetDouble error!\n";
@@ -116,6 +118,7 @@ public:
                     double t2 = GetDouble(line);
                     camera = make_shared<Camera>(o, up_dir, look_at, vfov, lr, dist, t1, t2);
                 }
+                else if (line.compare("BVH") == 0) use_bvh = true;
                 #ifdef INIT_SAMPLE_WORLD
                 else if (line.compare("Lambertian") == 0) {
                     std::getline(f, line);
@@ -177,6 +180,8 @@ public:
     shared_ptr<Camera>& GetCamera() { return camera; }
     
     std::vector<shared_ptr<Hittable>>& GetObjects() { return objs; }
+
+    bool CheckUseBVH() const { return use_bvh; }
 };
 
 #endif

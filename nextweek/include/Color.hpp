@@ -14,10 +14,10 @@ struct Color {
     }
 };
 
-Color operator*(const Color& c, double x) { return Color(c.r * x, c.g * x, c.b * x); }
-Color operator*(double x, const Color& c) { return Color(c.r * x, c.g * x, c.b * x); }
-Color operator*(const Color& a, const Color& b) { return Color(a.r * b.r, a.g * b.g, a.b * b.b); }
-Color operator+(const Color& a, const Color& b) { return Color(a.r + b.r, a.g + b.g, a.b + b.b); }
-Color operator/(const Color& c, double t) { return c * (1./t); }
+Color operator*(const Color& c, double x);
+Color operator*(double x, const Color& c);
+Color operator*(const Color& a, const Color& b);
+Color operator+(const Color& a, const Color& b);
+Color operator/(const Color& c, double t);
 
 #endif

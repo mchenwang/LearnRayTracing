@@ -1,32 +1,38 @@
 #include "config.hpp"
+#include "BVH.hpp"
 #include <iostream>
 #include <vector>
 #include <Windows.h>
-#include "BVH.hpp"
 using namespace std;
 
 PPMImage image(default_height, default_width);
 shared_ptr<Camera> camera;
 vector<shared_ptr<Hittable>> objs;
 shared_ptr<BVH_Node> bvh_root;
+bool use_BVH = false;
 
 bool world_hit(const Ray& ray, hit_info& hit) {
     bool hit_flag = false;
     double t_min = 0.000001;
     double t_max = std::numeric_limits<double>::infinity();
-
-    if (bvh_root->hit(ray, t_min, t_max, hit)) {
+    if (use_BVH){
+        if (bvh_root->hit(ray, t_min, t_max, hit)) {
+            hit.cast_ray_dir = ray.dir;
+            hit.ray_time = ray.time;
+            hit_flag = 1;
+        }
+    }
+    else {
+        for (auto& obj : objs) {
+            if (obj->hit(ray, t_min, t_max, hit)) {
+                t_max = hit.t;
+                hit_flag = 1;
+                hit.obj = obj;
+            }
+        }
         hit.cast_ray_dir = ray.dir;
         hit.ray_time = ray.time;
-        hit_flag = 1;
     }
-    // for (auto& obj : objs) {
-    //     if (obj->hit(ray, t_min, t_max, hit)) {
-    //         t_max = hit.t;
-    //         hit_flag = 1;
-    //         hit.obj = obj;
-    //     }
-    // }
     return hit_flag;
 }
 
@@ -105,6 +111,7 @@ void init_world(ConfigManager* configManager) {
     else {
         camera = configManager->GetCamera();
         objs = configManager->GetObjects();
+        use_BVH = configManager->CheckUseBVH();
     }
 }
 #else
@@ -113,6 +120,7 @@ void init_world(ConfigManager* configManager) {
         camera = make_shared<Camera>(point3d(13,2,3), default_up_dir, default_look_at, 20, 0.02, 13.3, 0, 1);
     }
     else {
+        use_BVH = configManager->CheckUseBVH();
         camera = configManager->GetCamera();
     }
 
@@ -213,11 +221,17 @@ int main(int argc, char *argv[])
 
     srand((unsigned)time(NULL));
     
+    DWORD t1,t2;
+    t1 = GetTickCount();
+
     #ifdef MUTILTHREAD
     render_with_mutilthread();
     #else
     render();
     #endif
+
+    t2 = GetTickCount();
+    std::cout << "time = " << ((t2 - t1) * 1.0 / 1000) << std::endl;
 
     image.write_to_file("image.ppm");
     return 0;

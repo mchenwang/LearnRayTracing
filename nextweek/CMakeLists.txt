@@ -2,7 +2,10 @@ cmake_minimum_required (VERSION 3.18)
 project (raytracer)
 
 set(SOURCES
+    src/PPMImage.cpp
     src/main.cpp
+    src/BVH.cpp
+    src/hittable.cpp
 )
 
 if(CMAKE_COMPILER_IS_GNUCXX)
