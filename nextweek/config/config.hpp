@@ -14,7 +14,7 @@
 #include "project_path.hpp"
 
 #define MUTILTHREAD
-#define INIT_SAMPLE_WORLDx
+#define INIT_SAMPLE_WORLD
 #define INIT_WORLD_WITH_CONFIG
 
 using std::shared_ptr;
@@ -99,6 +99,7 @@ public:
         while (std::getline(f, line)) {
             if (line.length() > 0) {
                 if (line[0] == '#') continue;
+                #ifdef INIT_SAMPLE_WORLD
                 if (line.compare("Camera") == 0) {
                     std::getline(f, line);
                     point3d o = GetPoint3d(line);
@@ -119,7 +120,6 @@ public:
                     camera = make_shared<Camera>(o, up_dir, look_at, vfov, lr, dist, t1, t2);
                 }
                 else if (line.compare("BVH") == 0) use_bvh = true;
-                #ifdef INIT_SAMPLE_WORLD
                 else if (line.compare("Lambertian") == 0) {
                     std::getline(f, line);
                     Color color = GetColor(line);
@@ -168,6 +168,26 @@ public:
                         auto material = materials[material_index];
                         objs.push_back(make_shared<MovingSphere>(t1, o1, t2, o2, r, material));
                     }
+                }
+                #else
+                if (line.compare("XCamera") == 0) {
+                    std::getline(f, line);
+                    point3d o = GetPoint3d(line);
+                    std::getline(f, line);
+                    vec3d up_dir = GetVec3d(line);
+                    std::getline(f, line);
+                    point3d look_at = GetPoint3d(line);
+                    std::getline(f, line);
+                    double vfov = GetDouble(line);
+                    std::getline(f, line);
+                    double lr = GetDouble(line);
+                    std::getline(f, line);
+                    double dist = GetDouble(line);
+                    std::getline(f, line);
+                    double t1 = GetDouble(line);
+                    std::getline(f, line);
+                    double t2 = GetDouble(line);
+                    camera = make_shared<Camera>(o, up_dir, look_at, vfov, lr, dist, t1, t2);
                 }
                 #endif
             }
