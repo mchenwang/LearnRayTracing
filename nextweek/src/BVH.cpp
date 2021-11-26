@@ -1,5 +1,11 @@
-#include "BVH.hpp"
+﻿#include "BVH.hpp"
 #include "hittable.hpp"
+
+AABB::AABB(const point3d& a, const point3d& b) noexcept {
+    // 保证所有 max_point - min_point 向量的方向夹角是锐角，以确保 BVH 构建时排序的正确性
+    min_point = a;
+    max_point = b;
+}
 
 bool AABB::hit(const Ray& r, double in_t, double out_t) const {
     for (int i = 0; i < 3; i++) {
@@ -36,7 +42,7 @@ bool BVH_Node::bbcmp(const std::shared_ptr<Hittable>& a, const std::shared_ptr<H
 bool BVH_Node::hit(const Ray& ray, double t_min, double t_max, hit_info& ret) const {
     if (!box.hit(ray, t_min, t_max)) return false;
     bool hit_left = left->hit(ray, t_min, t_max, ret);
-    bool hit_right = right->hit(ray, t_min, hit_left ? ret.t : t_max, ret);
+    bool hit_right = right->hit(ray, t_min, hit_left && ret.t < t_max ? ret.t : t_max, ret);
 
     if (hit_left && std::dynamic_pointer_cast<Sphere>(left)) ret.obj = left;
     if (hit_right && std::dynamic_pointer_cast<Sphere>(right)) ret.obj = right;

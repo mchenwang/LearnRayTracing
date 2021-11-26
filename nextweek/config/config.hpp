@@ -14,7 +14,7 @@
 #include "project_path.hpp"
 
 #define MUTILTHREAD
-#define INIT_SAMPLE_WORLD
+#define INIT_SAMPLE_WORLDx
 #define INIT_WORLD_WITH_CONFIG
 
 using std::shared_ptr;

@@ -202,6 +202,8 @@ void render_with_mutilthread() {
 // cmake --build build --target raytracer
 int main(int argc, char *argv[])
 {
+    srand((unsigned)time(NULL));
+
     #ifdef INIT_WORLD_WITH_CONFIG
     ConfigManager* configManager = new ConfigManager();
     configManager->GetConfig();
@@ -218,8 +220,6 @@ int main(int argc, char *argv[])
     #endif
 
     bvh_root = make_shared<BVH_Node>(objs, 0, objs.size(), 0, 1);
-
-    srand((unsigned)time(NULL));
     
     DWORD t1,t2;
     t1 = GetTickCount();

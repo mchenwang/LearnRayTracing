@@ -11,8 +11,7 @@ class AABB {
     point3d max_point;
 public:
     AABB() = default;
-    AABB(const point3d& a, const point3d& b) noexcept
-    : min_point(a), max_point(b) {}
+    AABB(const point3d& a, const point3d& b) noexcept;
     AABB(const AABB& temp) {
         min_point = temp.min_point;
         max_point = temp.max_point;
