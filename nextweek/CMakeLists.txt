@@ -6,6 +6,7 @@ set(SOURCES
     src/main.cpp
     src/BVH.cpp
     src/hittable.cpp
+    src/RenderThreadPool.cpp
 )
 
 if(CMAKE_COMPILER_IS_GNUCXX)
@@ -59,5 +60,6 @@ target_include_directories(${PROJECT_NAME}
     PRIVATE 
         ${PROJECT_SOURCE_DIR}/include
         ${PROJECT_SOURCE_DIR}/config
+        ${PROJECT_SOURCE_DIR}/tools
         ${PROJECT_BINARY_DIR}/config
 )

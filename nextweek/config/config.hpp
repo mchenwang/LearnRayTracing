@@ -14,7 +14,6 @@
 #include "project_path.hpp"
 
 #define MUTILTHREAD
-#define INIT_SAMPLE_WORLDx
 #define INIT_WORLD_WITH_CONFIG
 
 using std::shared_ptr;
@@ -29,6 +28,7 @@ class ConfigManager {
     std::vector<shared_ptr<Hittable>> objs;
 
     bool use_bvh = false;
+    bool is_sample_world = false;
 
     double GetDouble(string& line, int& index) const {
         if (index >= line.length()) {
@@ -76,12 +76,11 @@ class ConfigManager {
         return GetVec3d(line);
     }
 public:
-    ConfigManager() noexcept {
+    ConfigManager(const char* fileName = "config.data") noexcept {
         std::stringstream ss;
-        ss << project_path << "/static/config.data";
+        ss << project_path << fileName;
         config_path = ss.str();
     }
-    ConfigManager(const char* path) noexcept : config_path(path) {}
     ~ConfigManager() = default;
 
     void GetConfig() {
@@ -99,8 +98,10 @@ public:
         while (std::getline(f, line)) {
             if (line.length() > 0) {
                 if (line[0] == '#') continue;
-                #ifdef INIT_SAMPLE_WORLD
-                if (line.compare("Camera") == 0) {
+                
+                if (line.compare("BVH") == 0) use_bvh = true;
+                else if (line.compare("SAMPLE_WORLD") == 0) is_sample_world = true;
+                else if (line.compare("Camera") == 0 && is_sample_world) {
                     std::getline(f, line);
                     point3d o = GetPoint3d(line);
                     std::getline(f, line);
@@ -119,7 +120,25 @@ public:
                     double t2 = GetDouble(line);
                     camera = make_shared<Camera>(o, up_dir, look_at, vfov, lr, dist, t1, t2);
                 }
-                else if (line.compare("BVH") == 0) use_bvh = true;
+                else if (line.compare("XCamera") == 0 && !is_sample_world) {
+                    std::getline(f, line);
+                    point3d o = GetPoint3d(line);
+                    std::getline(f, line);
+                    vec3d up_dir = GetVec3d(line);
+                    std::getline(f, line);
+                    point3d look_at = GetPoint3d(line);
+                    std::getline(f, line);
+                    double vfov = GetDouble(line);
+                    std::getline(f, line);
+                    double lr = GetDouble(line);
+                    std::getline(f, line);
+                    double dist = GetDouble(line);
+                    std::getline(f, line);
+                    double t1 = GetDouble(line);
+                    std::getline(f, line);
+                    double t2 = GetDouble(line);
+                    camera = make_shared<Camera>(o, up_dir, look_at, vfov, lr, dist, t1, t2);
+                }
                 else if (line.compare("Lambertian") == 0) {
                     std::getline(f, line);
                     Color color = GetColor(line);
@@ -169,27 +188,6 @@ public:
                         objs.push_back(make_shared<MovingSphere>(t1, o1, t2, o2, r, material));
                     }
                 }
-                #else
-                if (line.compare("XCamera") == 0) {
-                    std::getline(f, line);
-                    point3d o = GetPoint3d(line);
-                    std::getline(f, line);
-                    vec3d up_dir = GetVec3d(line);
-                    std::getline(f, line);
-                    point3d look_at = GetPoint3d(line);
-                    std::getline(f, line);
-                    double vfov = GetDouble(line);
-                    std::getline(f, line);
-                    double lr = GetDouble(line);
-                    std::getline(f, line);
-                    double dist = GetDouble(line);
-                    std::getline(f, line);
-                    double t1 = GetDouble(line);
-                    std::getline(f, line);
-                    double t2 = GetDouble(line);
-                    camera = make_shared<Camera>(o, up_dir, look_at, vfov, lr, dist, t1, t2);
-                }
-                #endif
             }
         }
 
@@ -202,6 +200,7 @@ public:
     std::vector<shared_ptr<Hittable>>& GetObjects() { return objs; }
 
     bool CheckUseBVH() const { return use_bvh; }
+    bool CheckIsSampleWorld() const { return is_sample_world; }
 };
 
 #endif

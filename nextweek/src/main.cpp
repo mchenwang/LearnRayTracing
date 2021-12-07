@@ -1,8 +1,7 @@
 #include "config.hpp"
 #include "BVH.hpp"
 #include <iostream>
-#include <vector>
-#include <Windows.h>
+#include "RenderThreadPool.hpp"
 using namespace std;
 
 PPMImage image(default_height, default_width);
@@ -50,14 +49,16 @@ Color ray_cast(const Ray& ray, int depth = max_depth) {
 }
 
 #ifdef MUTILTHREAD
-struct RenderThreadData { int i_from, i_to; };
-DWORD WINAPI render(LPVOID range_) {
+constexpr int thread_num = 8;
+constexpr int thread_w = 2;
+
+void render(RenderTaskParam param) {
+    auto [from, to] = param;
     int h = image.get_height();
     int w = image.get_width();
-    RenderThreadData* range = (RenderThreadData*)range_;
-    srand(range->i_from);
+    srand(from);
     for (int y = 0; y < h; y++) {
-        for (int x = range->i_from; x < range->i_to; x++) {
+        for (int x = from; x < to; x++) {
             Color c;
             for (int i = 0; i < samples_per_pixel; i++){
                 double v = (double)(y + get_random()) / (h - 1.);
@@ -69,9 +70,21 @@ DWORD WINAPI render(LPVOID range_) {
             image.set_pixel(x, y, c);
         }
     }
-    
-    std::cout << "Thread " << GetCurrentThreadId() << " end\n";
-    return 0L;
+    //std::cout << "render " << from << " to " << to << " end\n";
+}
+
+void render_with_mutilthread() {
+    RenderThreadPool pool(thread_num);
+    int from = 0, w = image.get_width();
+    int step = w / thread_num;
+    if (step > thread_w) step = thread_w;
+    while (from < w) {
+        int to = (from + step > w ? w : from + step);
+        pool.AddTask(render, {from, to});
+        from = to;
+    }
+    pool.Dispatch();
+    pool.WaitForTaskEnding();
 }
 #else
 void render(){
@@ -93,8 +106,7 @@ void render(){
 }
 #endif
 
-#ifdef INIT_SAMPLE_WORLD
-void init_world(ConfigManager* configManager) {
+void get_sample_world(ConfigManager* configManager) {
     if (configManager == nullptr) {
         camera = make_shared<Camera>(point3d(-2,0,2), default_up_dir, default_look_at, 40, 0.02, 4);
         auto material_ground = make_shared<Lambertian>(Color(0.8, 0.8, 0.0));
@@ -114,8 +126,8 @@ void init_world(ConfigManager* configManager) {
         use_BVH = configManager->CheckUseBVH();
     }
 }
-#else
-void init_world(ConfigManager* configManager) {
+
+void get_complex_world(ConfigManager* configManager) {
     if (configManager == nullptr) {
         camera = make_shared<Camera>(point3d(13,2,3), default_up_dir, default_look_at, 20, 0.02, 13.3, 0, 1);
     }
@@ -178,39 +190,29 @@ void init_world(ConfigManager* configManager) {
         }
     }
 }
-#endif
 
-#ifdef MUTILTHREAD
-void render_with_mutilthread() {
-    constexpr int thread_num = 8;
-    HANDLE* thread_list = new HANDLE[thread_num];
-    std::vector<RenderThreadData> thread_para(thread_num);
-
-    for(int i = 0, from = 0; i < thread_num; i++) {
-        int to = (i == thread_num - 1 ? image.get_width() : from + image.get_width()/thread_num);
-        thread_para[i] = {from, to};
-        thread_list[i] = CreateThread(NULL, 0, render, &thread_para[i], 0, NULL);
-        from = to;
-    }
-    WaitForMultipleObjects(thread_num, thread_list, TRUE, INFINITE);
-
-    delete[] thread_list;
+void init_world(ConfigManager* configManager) {
+    if (configManager->CheckIsSampleWorld()) get_sample_world(configManager);
+    else get_complex_world(configManager);
 }
-#endif
 
 // cmake -G"Visual Studio 16 2019" -S . -Bbuild
 // cmake --build build --target raytracer
 int main(int argc, char *argv[])
 {
-    srand((unsigned)time(NULL));
+    //srand((unsigned)time(NULL));
 
     #ifdef INIT_WORLD_WITH_CONFIG
-    ConfigManager* configManager = new ConfigManager();
-    configManager->GetConfig();
+    ConfigManager* configManager = nullptr;
     
     if (argc > 1) {
-        image = PPMImage(atoi(argv[1]), argc > 2 ? atoi(argv[2]) : atoi(argv[1]) * aspect_ratio);
+        int h = atoi(argv[1]);
+        image = PPMImage(h, h * aspect_ratio);
     }
+    if (argc > 2) configManager = new ConfigManager(argv[2]);
+    
+    if (configManager == nullptr) configManager = new ConfigManager();
+    configManager->GetConfig();
 
     init_world(configManager);
 
