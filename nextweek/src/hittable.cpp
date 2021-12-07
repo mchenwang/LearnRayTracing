@@ -48,9 +48,9 @@ bool Sphere::scatter(Ray& ray_out, const hit_info& hit) const {
 }
 
 bool Sphere::bounding_box(const double, const double, AABB& output_box) const {
-    double abs_r = r > 0 ? r : -r;
-    output_box = AABB(o - vec3d(abs_r, abs_r, abs_r), o + vec3d(abs_r, abs_r, abs_r));
-    // output_box = AABB(o - vec3d(r, r, r), o + vec3d(r, r, r));
+    // double abs_r = r > 0 ? r : -r;
+    // output_box = AABB(o - vec3d(abs_r, abs_r, abs_r), o + vec3d(abs_r, abs_r, abs_r));
+    output_box = AABB(o - vec3d(r, r, r), o + vec3d(r, r, r));
     return true;
 }
 

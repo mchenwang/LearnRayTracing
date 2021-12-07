@@ -12,18 +12,11 @@ class AABB {
 public:
     AABB() = default;
     AABB(const point3d& a, const point3d& b) noexcept;
-    AABB(const AABB& temp) {
-        min_point = temp.min_point;
-        max_point = temp.max_point;
-    }
-    AABB& operator=(const AABB& temp) {
-        min_point = temp.min_point;
-        max_point = temp.max_point;
-        return *this;
-    }
+    AABB(const AABB& temp);
+    AABB& operator=(const AABB& temp);
 
-    point3d get_min_point() const { return min_point; }
-    point3d get_max_point() const { return max_point; }
+    point3d get_min_point() const;
+    point3d get_max_point() const;
 
     bool hit(const Ray& r, double in_t, double out_t) const;
 

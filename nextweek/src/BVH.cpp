@@ -3,9 +3,22 @@
 
 AABB::AABB(const point3d& a, const point3d& b) noexcept {
     // 保证所有 max_point - min_point 向量的方向夹角是锐角，以确保 BVH 构建时排序的正确性
-    min_point = a;
-    max_point = b;
+    min_point = point3d(std::min(a.x, b.x), std::min(a.y, b.y), std::min(a.z, b.z));
+    max_point = point3d(std::max(a.x, b.x), std::max(a.y, b.y), std::max(a.z, b.z));
 }
+
+AABB::AABB(const AABB& temp) {
+    min_point = temp.min_point;
+    max_point = temp.max_point;
+}
+AABB& AABB::operator=(const AABB& temp) {
+    min_point = temp.min_point;
+    max_point = temp.max_point;
+    return *this;
+}
+
+point3d AABB::get_min_point() const { return min_point; }
+point3d AABB::get_max_point() const { return max_point; }
 
 bool AABB::hit(const Ray& r, double in_t, double out_t) const {
     for (int i = 0; i < 3; i++) {
