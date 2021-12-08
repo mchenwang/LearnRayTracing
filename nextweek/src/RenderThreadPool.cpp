@@ -2,6 +2,7 @@
 
 DWORD WINAPI DispatchTask(LPVOID pool_) {
     RenderThreadPool* pool = (RenderThreadPool*) pool_;
+    srand(GetCurrentThreadId());
     while (true) {
         pool->Lock();
         if (pool->GetRestTasksNum() <= 0) {

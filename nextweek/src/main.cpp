@@ -56,7 +56,7 @@ void render(RenderTaskParam param) {
     auto [from, to] = param;
     int h = image.get_height();
     int w = image.get_width();
-    srand(from);
+    // srand(from);
     for (int y = 0; y < h; y++) {
         for (int x = from; x < to; x++) {
             Color c;
@@ -73,21 +73,53 @@ void render(RenderTaskParam param) {
     //std::cout << "render " << from << " to " << to << " end\n";
 }
 
+// 两种写法效率差不多
+void render_pixel(RenderTaskParam param) {
+    auto [x, y] = param;
+    int h = image.get_height();
+    int w = image.get_width();
+    // srand(x*1000+y);
+    Color c;
+    for (int i = 0; i < samples_per_pixel; i++){
+        double v = (double)(y + get_random()) / (h - 1.);
+        double u = (double)(x + get_random()) / (w - 1.);
+        c = c + ray_cast(camera->get_ray(u, v));
+    }
+    // Gamma Correction
+    c = Color(std::pow(c.r/samples_per_pixel, 0.45), std::pow(c.g/samples_per_pixel, 0.45), std::pow(c.b/samples_per_pixel, 0.45));
+    image.set_pixel(x, y, c);
+}
+
 void render_with_mutilthread() {
     RenderThreadPool pool(thread_num);
-    int from = 0, w = image.get_width();
-    int step = w / thread_num;
-    if (step > thread_w) step = thread_w;
-    while (from < w) {
-        int to = (from + step > w ? w : from + step);
-        pool.AddTask(render, {from, to});
-        from = to;
+    // int from = 0, w = image.get_width();
+    // int step = w / thread_num;
+    // if (step > thread_w) step = thread_w;
+    // while (from < w) {
+    //     int to = (from + step > w ? w : from + step);
+    //     pool.AddTask(render, {from, to});
+    //     from = to;
+    // }
+    for (int x = 0; x < image.get_width(); x++) {
+        for (int y = 0; y < image.get_height(); y++) {
+            pool.AddTask(render_pixel, {x, y});
+        }
     }
+    
+    DWORD t1,t2;
+    t1 = GetTickCount();
+
     pool.Dispatch();
     pool.WaitForTaskEnding();
+    
+    t2 = GetTickCount();
+    std::cout << "time = " << ((t2 - t1) * 1.0 / 1000) << "s" << std::endl;
 }
 #else
 void render(){
+    DWORD t1,t2;
+    t1 = GetTickCount();
+
     int h = image.get_height();
     int w = image.get_width();
     for (int y = 0; y < h; y++) {
@@ -103,6 +135,9 @@ void render(){
             image.set_pixel(x, y, c);
         }
     }
+    
+    t2 = GetTickCount();
+    std::cout << "time = " << ((t2 - t1) * 1.0 / 1000) << "s" << std::endl;
 }
 #endif
 
@@ -222,18 +257,12 @@ int main(int argc, char *argv[])
     #endif
 
     bvh_root = make_shared<BVH_Node>(objs, 0, objs.size(), 0, 1);
-    
-    DWORD t1,t2;
-    t1 = GetTickCount();
 
     #ifdef MUTILTHREAD
     render_with_mutilthread();
     #else
     render();
     #endif
-
-    t2 = GetTickCount();
-    std::cout << "time = " << ((t2 - t1) * 1.0 / 1000) << std::endl;
 
     image.write_to_file("image.ppm");
     return 0;
