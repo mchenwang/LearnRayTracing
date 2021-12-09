@@ -4,7 +4,7 @@
 #include "algebra.hpp"
 #include "ray.hpp"
 #include "material.hpp"
-// #include <utility>
+#include "texture.hpp"
 
 class AABB;
 class Hittable;
@@ -12,6 +12,8 @@ class Hittable;
 struct hit_info{
     double t;
     double ray_time; // 光线发出时间
+    double u;
+    double v;
     point3d point;
     bool inside_obj;
     vec3d normal;
@@ -32,7 +34,8 @@ public:
     virtual bool hit(const Ray& ray, double t_min, double t_max, hit_info& ret) const = 0;
     virtual bool scatter(Ray& ray_out, const hit_info& hit) const = 0;
     virtual bool bounding_box(const double, const double, AABB& output_box) const = 0;
-    Color get_material_attenuation_coef() const { return material->get_color_attenuation_coef(); }
+    // Color get_material_attenuation_coef() const { return material->get_color_attenuation_coef(); }
+    Color get_material_texture(const double u, const double v, const point3d& p) const { return material->get_texture(u, v, p); }
 };
 
 class Sphere : public Hittable {
@@ -49,6 +52,8 @@ public:
     bool hit(const Ray&, double, double, hit_info&) const override;
     bool scatter(Ray&, const hit_info&) const override;
     bool bounding_box(const double, const double, AABB&) const override;
+
+    static void GetUV(double&, double&, const point3d&);
 };
 
 class MovingSphere : public Sphere {

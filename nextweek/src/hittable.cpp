@@ -1,5 +1,6 @@
 ﻿#include "hittable.hpp"
 #include "BVH.hpp"
+#include "global.hpp"
 
 // ray.o + ray.dir * t == hit_point
 // (hit_point - o).length() == r
@@ -27,6 +28,7 @@ bool Sphere::hit(const Ray& ray, double t_min, double t_max, hit_info& ret) cons
         ret.inside_obj = true;
     }
     else ret.inside_obj = false;
+    Sphere::GetUV(ret.u, ret.v, ret.point);
     return true;
 }
 
@@ -52,6 +54,13 @@ bool Sphere::bounding_box(const double, const double, AABB& output_box) const {
     // output_box = AABB(o - vec3d(abs_r, abs_r, abs_r), o + vec3d(abs_r, abs_r, abs_r));
     output_box = AABB(o - vec3d(r, r, r), o + vec3d(r, r, r));
     return true;
+}
+
+void Sphere::GetUV(double& u, double& v, const point3d& p) {
+    double theta = std::acos(p.y);
+    double phi = std::atan2(p.z, p.x) + PI;
+    u = phi / (2 * PI);
+    v = theta / PI;
 }
 
 point3d MovingSphere::get_origin(const double time) const {

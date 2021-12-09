@@ -3,7 +3,7 @@
 
 #include "ray.hpp"
 #include "Color.hpp"
-
+#include "texture.hpp"
 #include <memory>
 
 using std::shared_ptr;
@@ -29,17 +29,21 @@ struct dielectrics_scatter_info : scatter_info {
 
 class Material {
 protected:
-    Color attenuation_coef;
+    shared_ptr<Texture> texture;
+    // Color attenuation_coef;
 public:
     Material() = default;
-    Material(Color a_c) noexcept : attenuation_coef(a_c) {}
+    Material(Color a_c) noexcept : texture(std::make_shared<SolidTexture>(a_c)) {}
+    Material(shared_ptr<Texture> texture_) noexcept : texture(texture_) {}
     virtual bool scatter(shared_ptr<scatter_info>& info) const = 0;
-    Color get_color_attenuation_coef() const { return attenuation_coef; }
+    // Color get_color_attenuation_coef() const { return attenuation_coef; }
+    Color get_texture(const double u, const double v, const point3d& p) const { return texture->GetTexture(u, v, p); }
 };
 
 class Lambertian : public Material {
 public:
     Lambertian(Color a_c) noexcept : Material(a_c) {}
+    Lambertian(shared_ptr<Texture> texture) noexcept : Material(texture) {}
     bool scatter(shared_ptr<scatter_info>& info) const override {
         // one week 中 An Alternative Diffuse Formulation 说明正确的漫反射反射光线的方向是通过随机生成半球的方向得到，
         // 这里使用法线与随机单位球方向的向量和的方向近似，可能生成反正光线方向的概率不相同，不过个人感觉影响不大
@@ -57,6 +61,7 @@ class Metal : public Material {
     double fuzz;
 public:
     Metal(Color a_c, double fuzz_ = 0.) noexcept : Material(a_c), fuzz(fuzz_) {}
+    Metal(shared_ptr<Texture> texture, double fuzz_ = 0.) noexcept : Material(texture), fuzz(fuzz_) {}
     bool scatter(shared_ptr<scatter_info>& info) const override {
         vec3d reflect_ray_dir = info->cast_ray_dir - info->scatter_point_nm * 2 * dot(info->cast_ray_dir, info->scatter_point_nm);
         vec3d fuzzy_dir = reflect_ray_dir + get_random_vec3d(-1., 1.) * fuzz;

@@ -41,7 +41,7 @@ Color ray_cast(const Ray& ray, int depth = max_depth) {
     if (world_hit(ray, hit)) {
         Ray scatter_ray;
         if (hit.obj->scatter(scatter_ray, hit)) {
-            return hit.obj->get_material_attenuation_coef() * ray_cast(scatter_ray, depth - 1);
+            return hit.obj->get_material_texture(hit.u, hit.v, hit.point) * ray_cast(scatter_ray, depth - 1);
         }
     }
     double t = (ray.dir.y + 1) * 0.5;
@@ -171,7 +171,8 @@ void get_complex_world(ConfigManager* configManager) {
         camera = configManager->GetCamera();
     }
 
-    auto material_ground = make_shared<Lambertian>(Color(0.5, 0.5, 0.5));
+    auto ground_texture = make_shared<CheckerTexture>(Color(0, 0, 0), Color(1, 1, 1));
+    auto material_ground = make_shared<Lambertian>(ground_texture);
     objs.push_back(make_shared<Sphere>(point3d(0, -1000, 0), 1000, material_ground));
 
     auto big_sphere_o1 = point3d(0, 1, 0);
@@ -182,7 +183,9 @@ void get_complex_world(ConfigManager* configManager) {
     objs.push_back(make_shared<Sphere>(big_sphere_o1, 1, material1));
     objs.push_back(make_shared<Sphere>(big_sphere_o1, -0.9, material1));
 
-    auto material2 = make_shared<Lambertian>(Color(0.4, 0.2, 0.1));
+    auto texture2 = make_shared<CheckerTexture>(Color(0.2, 0.3, 0.1), Color(0.9, 0.9, 0.9));
+    // auto material2 = make_shared<Lambertian>(Color(0.4, 0.2, 0.1));
+    auto material2 = make_shared<Lambertian>(texture2);
     objs.push_back(make_shared<Sphere>(big_sphere_o2, 1, material2));
 
     auto material3 = make_shared<Metal>(Color(1, 1, 1));
