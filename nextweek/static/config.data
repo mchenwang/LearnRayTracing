@@ -1,4 +1,5 @@
 BVH
+SAMPLE_WORLDx
 # 相机参数，分别是相机位置、向上方向、看向点位置、视角度数、透镜半径、透镜到聚焦面的距离、快门起止时间
 Camera
 -2 0.3 2
@@ -18,18 +19,28 @@ XCamera
 13.3
 0
 1
-# 材质种类
-Lambertian
-0.8 0.8 0
-Lambertian
+# 纹理
+Checker
+0 0 0
+1 1 1
+Solid
 0.7 0.3 0.3
+Solid
+0.8 0.6 0.2
+Solid
+0 0.5 0.8
+# 材质种类，参数是纹理序号
+Lambertian
+1
+Lambertian
+2
 Dielectrics
 1.5
 Metal
-0.8 0.6 0.2
+3
 0.9
 Lambertian
-0 0.5 0.8
+4
 # 球参数，分别是球心位置、半径、材质序号
 Sphere
 0 -100.5 0

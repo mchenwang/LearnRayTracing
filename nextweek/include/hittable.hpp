@@ -34,8 +34,9 @@ public:
     virtual bool hit(const Ray& ray, double t_min, double t_max, hit_info& ret) const = 0;
     virtual bool scatter(Ray& ray_out, const hit_info& hit) const = 0;
     virtual bool bounding_box(const double, const double, AABB& output_box) const = 0;
+    virtual void GetUV(double&, double&, const point3d&) const {}
     // Color get_material_attenuation_coef() const { return material->get_color_attenuation_coef(); }
-    Color get_material_texture(const double u, const double v, const point3d& p) const { return material->get_texture(u, v, p); }
+    virtual Color get_material_texture(const double u, const double v, const point3d& p) const { return material->get_texture(u, v, p); }
 };
 
 class Sphere : public Hittable {
@@ -53,7 +54,8 @@ public:
     bool scatter(Ray&, const hit_info&) const override;
     bool bounding_box(const double, const double, AABB&) const override;
 
-    static void GetUV(double&, double&, const point3d&);
+    void GetUV(double&, double&, const point3d&) const override;
+    Color get_material_texture(const double u, const double v, const point3d& p) const override;
 };
 
 class MovingSphere : public Sphere {

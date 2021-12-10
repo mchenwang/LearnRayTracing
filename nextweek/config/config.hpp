@@ -12,6 +12,7 @@
 #include "hittable.hpp"
 #include "material.hpp"
 #include "project_path.hpp"
+#include "texture.hpp"
 
 #define MUTILTHREAD
 #define INIT_WORLD_WITH_CONFIG
@@ -26,6 +27,7 @@ class ConfigManager {
     shared_ptr<Camera> camera;
     std::vector<shared_ptr<Material>> materials;
     std::vector<shared_ptr<Hittable>> objs;
+    std::vector<shared_ptr<Texture>> textures;
 
     bool use_bvh = false;
     bool is_sample_world = false;
@@ -139,10 +141,23 @@ public:
                     double t2 = GetDouble(line);
                     camera = make_shared<Camera>(o, up_dir, look_at, vfov, lr, dist, t1, t2);
                 }
-                else if (line.compare("Lambertian") == 0) {
+                else if (line.compare("Solid") == 0) {
                     std::getline(f, line);
                     Color color = GetColor(line);
-                    materials.push_back(make_shared<Lambertian>(color));
+                    textures.emplace_back(make_shared<SolidTexture>(color));
+                }
+                else if (line.compare("Checker") == 0) {
+                    std::getline(f, line);
+                    Color color0 = GetColor(line);
+                    std::getline(f, line);
+                    Color color1 = GetColor(line);
+                    textures.emplace_back(make_shared<CheckerTexture>(color0, color1));
+                }
+                else if (line.compare("Lambertian") == 0) {
+                    std::getline(f, line);
+                    int index = GetDouble(line) - 1;
+                    if (index >= 0 && index < textures.size())
+                        materials.push_back(make_shared<Lambertian>(textures[index]));
                 }
                 else if (line.compare("Dielectrics") == 0) {
                     std::getline(f, line);
@@ -151,10 +166,11 @@ public:
                 }
                 else if (line.compare("Metal") == 0) {
                     std::getline(f, line);
-                    Color color = GetColor(line);
+                    int index = GetDouble(line) - 1;
                     std::getline(f, line);
                     double fuzz = GetDouble(line);
-                    materials.push_back(make_shared<Metal>(color, fuzz));
+                    if (index >= 0 && index < textures.size())
+                        materials.push_back(make_shared<Metal>(textures[index], fuzz));
                 }
                 else if (line.compare("Sphere") == 0) {
                     std::getline(f, line);

@@ -56,11 +56,27 @@ bool Sphere::bounding_box(const double, const double, AABB& output_box) const {
     return true;
 }
 
-void Sphere::GetUV(double& u, double& v, const point3d& p) {
+void Sphere::GetUV(double& u, double& v, const point3d& hit_p) const {
+    point3d p = (hit_p + vec3d(point3d(0, 0, 0) - o)) / r;
     double theta = std::acos(p.y);
     double phi = std::atan2(p.z, p.x) + PI;
     u = phi / (2 * PI);
     v = theta / PI;
+}
+
+Color Sphere::get_material_texture(const double u, const double v, const point3d& hit_p) const {
+    #if defined(MAP_SPHERE_TO_CUBE)
+    point3d p = (hit_p + vec3d(point3d(0, 0, 0) - o)) / r;
+    double x = abs(p.x), y = abs(p.y), z = abs(p.z);
+    if (z >= x && z >= y) p.z = p.z > 0 ? 1 : -1;
+    else if (y >= x && y >= z) p.y = p.y > 0 ? 1 : -1;
+    else p.x = p.x > 0 ? 1 : -1;
+    return material->get_texture(u, v, p * r * 10);
+    #elif defined(TEXTURE_WITH_UV)
+    return material->get_texture(u * 100, v * 100, hit_p);
+    #else
+    return material->get_texture(u, v, hit_p);
+    #endif
 }
 
 point3d MovingSphere::get_origin(const double time) const {

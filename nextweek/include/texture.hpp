@@ -23,6 +23,9 @@ public:
     }
 };
 
+#define MAP_SPHERE_TO_CUBE
+#define TEXTURE_WITH_UV
+
 class CheckerTexture : public Texture {
     std::shared_ptr<Texture> odd;
     std::shared_ptr<Texture> even;
@@ -33,10 +36,20 @@ public:
     : even(even_), odd(odd_) {}
 
     Color GetTexture(const double u, const double v, const point3d& p) const override {
-        // auto sines = std::abs(cos(10 * p.x)) * sin(10 * p.y) * sin(10 * p.z);
-        // auto sines = sin(10 * p.x) * sin(10 * p.y) * std::abs(sin(10 * p.z));
-        auto sines = sin(10 * u * 2 * PI) * sin(10 * v * 2 * PI);
+        #if defined(MAP_SPHERE_TO_CUBE)
+        auto sines = sin(p.x) * sin(p.y) * sin(p.z);
         return sines < 0 ? odd->GetTexture(u, v, p) : even->GetTexture(u, v, p);
+        #elif defined(TEXTURE_WITH_UV)
+        // double tu = u * 10;
+        // double tv = v * 10;
+        // tu = tu - (int)tu;
+        // tv = tv - (int)tv;
+        // return (tu + tv < 0.5 || tu + tv > 1.5 || tv - tu > 0.5 || tv - tu < -0.5) ? odd->GetTexture(u, v, p) : even->GetTexture(u, v, p);
+        return sin(u) * sin(v) < 0 ? odd->GetTexture(u, v, p) : even->GetTexture(u, v, p);
+        #else 
+        auto sines = sin(p.x * 10) * sin(p.y * 10) * sin(p.z * 10);
+        return sines < 0 ? odd->GetTexture(u, v, p) : even->GetTexture(u, v, p);
+        #endif
     }
 };
 
