@@ -4,6 +4,7 @@
 #include "algebra.hpp"
 #include "Color.hpp"
 #include "global.hpp"
+#include "noise.hpp"
 
 class Texture
 {
@@ -23,8 +24,8 @@ public:
     }
 };
 
-#define MAP_SPHERE_TO_CUBE
-#define TEXTURE_WITH_UV
+#define MAP_SPHERE_TO_CUBEx
+#define TEXTURE_WITH_UVx
 
 class CheckerTexture : public Texture {
     std::shared_ptr<Texture> odd;
@@ -50,6 +51,17 @@ public:
         auto sines = sin(p.x * 10) * sin(p.y * 10) * sin(p.z * 10);
         return sines < 0 ? odd->GetTexture(u, v, p) : even->GetTexture(u, v, p);
         #endif
+    }
+};
+
+class NoiseTexture : public Texture {
+    std::shared_ptr<Noise> noise;
+    Color color;
+public:
+    NoiseTexture() = delete;
+    NoiseTexture(std::shared_ptr<Noise> n, Color c = Color(1, 1, 1)) noexcept : noise(n), color(c) {}
+    Color GetTexture(const double u, const double v, const point3d& p) const override {
+        return color * noise->GetNoise(p);
     }
 };
 

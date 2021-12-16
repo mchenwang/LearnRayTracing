@@ -75,6 +75,7 @@ Color Sphere::get_material_texture(const double u, const double v, const point3d
     #elif defined(TEXTURE_WITH_UV)
     return material->get_texture(u * 100, v * 100, hit_p);
     #else
+    // point3d p = (hit_p + vec3d(point3d(0, 0, 0) - o)) / r;
     return material->get_texture(u, v, hit_p);
     #endif
 }

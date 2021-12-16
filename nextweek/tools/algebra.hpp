@@ -103,5 +103,7 @@ inline double get_random(double min = 0., double max = 1.) {
 inline vec3d get_random_vec3d(double min = 0., double max = 1.) {
     return vec3d(get_random(min, max), get_random(min, max), get_random(min, max));
 }
-
+inline int get_random_int(int min, int max) {
+    return static_cast<int>(get_random(min, max+1));
+}
 #endif
