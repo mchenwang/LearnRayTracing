@@ -5,6 +5,7 @@
 #include "Color.hpp"
 #include "global.hpp"
 #include "noise.hpp"
+#include "PPMImage.hpp"
 
 class Texture
 {
@@ -64,6 +65,20 @@ public:
     : noise(n), color(c), scale(s) {}
     Color GetTexture(const double u, const double v, const point3d& p) const override {
         return color * 0.5 * (1 + sin(scale * p.z + 10. * noise->Turb(p)));
+    }
+};
+
+class ImageTexture : public Texture {
+    std::shared_ptr<PPMImage> image;
+    int h, w;
+public:
+    ImageTexture() = delete;
+    ImageTexture(std::shared_ptr<PPMImage>& i) noexcept : image(i) {
+        w = image->get_width();
+        h = image->get_height();
+    }
+    Color GetTexture(const double u, const double v, const point3d& p) const override {
+        return image->get_color((1 - u) * w, v * h);
     }
 };
 

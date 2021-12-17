@@ -10,7 +10,7 @@ private:
     int width;
     Color* image;
 public:
-    PPMImage() = default;
+    PPMImage() noexcept;
     ~PPMImage() noexcept;
     PPMImage(int h, int w) noexcept;
     PPMImage(const PPMImage& other) noexcept;
@@ -20,6 +20,7 @@ public:
     int get_height() const;
     int get_width() const;
     void write_to_file(const char* file_name);
+    void read_from_file(std::string file_name);
 };
 
 #endif

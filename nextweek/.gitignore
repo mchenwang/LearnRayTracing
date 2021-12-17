@@ -1,5 +1,6 @@
 build
 target
 .vscode
-*.ppm
+image.ppm
+static/texture/*.jpg
 config/project_path.hpp

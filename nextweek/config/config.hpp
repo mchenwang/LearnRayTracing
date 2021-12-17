@@ -80,7 +80,7 @@ class ConfigManager {
 public:
     ConfigManager(const char* fileName = "config.data") noexcept {
         std::stringstream ss;
-        ss << project_path << fileName;
+        ss << source_path << fileName;
         config_path = ss.str();
     }
     ~ConfigManager() = default;
@@ -159,6 +159,12 @@ public:
                     std::getline(f, line);
                     Color color = GetColor(line);
                     textures.emplace_back(make_shared<NoiseTexture>(make_shared<PerlinNoise>(), color, scale));
+                }
+                else if (line.compare("Image") == 0) {
+                    std::getline(f, line);
+                    auto image = make_shared<PPMImage>();
+                    image->read_from_file(line);
+                    textures.emplace_back(make_shared<ImageTexture>(image));
                 }
                 else if (line.compare("Lambertian") == 0) {
                     std::getline(f, line);

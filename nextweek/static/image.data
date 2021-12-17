@@ -1,0 +1,32 @@
+BVH
+SAMPLE_WORLD
+# 相机参数，分别是相机位置、向上方向、看向点位置、视角度数、透镜半径、透镜到聚焦面的距离、快门起止时间
+Camera
+-5 5 -10
+0 1 0
+0 2 0
+30
+0.02
+11.5
+0
+1
+# 纹理
+Noise
+2.3
+1 1 1
+Image
+texture\earthmap.ppm
+# 材质种类，参数是纹理序号
+Lambertian
+1
+Lambertian
+2
+# 球参数，分别是球心位置、半径、材质序号
+Sphere
+0 -1000 0
+1000
+1
+Sphere
+0 2 0
+2
+2
