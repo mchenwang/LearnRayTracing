@@ -155,12 +155,10 @@ public:
                 }
                 else if (line.compare("Noise") == 0) {
                     std::getline(f, line);
-                    std::shared_ptr<Noise> noise;
-                    if (line.compare("Perlin") == 0) noise = make_shared<PerlinNoise>();
-                    else if (line.compare("TriPerlin") == 0) noise = make_shared<TriPerlin>();
+                    double scale = GetDouble(line);
                     std::getline(f, line);
                     Color color = GetColor(line);
-                    textures.emplace_back(make_shared<NoiseTexture>(noise, color));
+                    textures.emplace_back(make_shared<NoiseTexture>(make_shared<PerlinNoise>(), color, scale));
                 }
                 else if (line.compare("Lambertian") == 0) {
                     std::getline(f, line);

@@ -5,13 +5,13 @@
 
 class Noise {
 public:
-    virtual double GetNoise(const point3d&) const = 0;
+    virtual double Turb(const point3d&) const = 0;
 };
 
 class PerlinNoise : public Noise {
-protected:
     static constexpr int CNT = 256;
-    double* rand_double;
+    static constexpr int TURB_DEPTH = 7;
+    vec3d* rand_vec;
     int* permutation_x;
     int* permutation_y;
     int* permutation_z;
@@ -27,61 +27,71 @@ protected:
             std::swap(a[i], a[t]);
         }
     }
-public:
-    PerlinNoise() noexcept {
-        rand_double = new double[CNT];
-        for (int i = 0; i < CNT; i++) rand_double[i] = get_random();
-        permutation_x = GetPermutation();
-        permutation_y = GetPermutation();
-        permutation_z = GetPermutation();
+    static double SmoothStep(double x) {
+        return x * x * (3. - 2. * x);
     }
-    ~PerlinNoise() noexcept {
-        delete[] rand_double;
-        delete[] permutation_x;
-        delete[] permutation_y;
-        delete[] permutation_z;
+    double TrilinearInterp(vec3d c[8], double x, double y, double z) const {
+        double ret = 0.;
+        double xx = SmoothStep(x);
+        double yy = SmoothStep(y);
+        double zz = SmoothStep(z);
+        for (int di=0; di < 2; di++)
+            for (int dj=0; dj < 2; dj++)
+                for (int dk=0; dk < 2; dk++) {
+                    vec3d w(x - di, y - dj, z - dk);
+                    ret += (xx * di + (1 - xx) * (1 - di))
+                         * (yy * dj + (1 - yy) * (1 - dj))
+                         * (zz * dk + (1 - zz) * (1 - dk))
+                         * dot(c[(di<<2)|(dj<<1)|(dk)], w);
+                }
+        return ret;
     }
-    double GetNoise(const point3d& p) const override {
-        auto i = static_cast<int>(p.x) & 255;
-        auto j = static_cast<int>(p.y) & 255;
-        auto k = static_cast<int>(p.z) & 255;
-        return rand_double[permutation_x[i] ^ permutation_y[j] ^ permutation_z[k]];
-    }
-};
-
-class TriPerlin : public PerlinNoise {
-    double TrilinearInterp(double a[8], double x, double y, double z) const {
-        return a[(0<<2)|(0<<1)|(0)] * (1. - x) * (1. - y) * (1. - z) + 
-               a[(0<<2)|(0<<1)|(1)] * (1. - x) * (1. - y) * (     z) + 
-               a[(0<<2)|(1<<1)|(0)] * (1. - x) * (     y) * (1. - z) + 
-               a[(1<<2)|(0<<1)|(0)] * (     x) * (1. - y) * (1. - z) + 
-               a[(0<<2)|(1<<1)|(1)] * (1. - x) * (     y) * (     z) + 
-               a[(1<<2)|(0<<1)|(1)] * (     x) * (1. - y) * (     z) + 
-               a[(1<<2)|(1<<1)|(0)] * (     x) * (     y) * (1. - z) + 
-               a[(1<<2)|(1<<1)|(1)] * x * y * z;
-    }
-public:
-    double GetNoise(const point3d& tp) const override {
-        point3d p = tp * 4;
+    double GetNoise(const point3d& p) const {
         auto u = p.x - floor(p.x);
         auto v = p.y - floor(p.y);
         auto w = p.z - floor(p.z);
-
         auto i = static_cast<int>(floor(p.x));
         auto j = static_cast<int>(floor(p.y));
         auto k = static_cast<int>(floor(p.z));
-        double c[8];
+        vec3d c[8];
 
         for (int di=0; di < 2; di++)
             for (int dj=0; dj < 2; dj++)
                 for (int dk=0; dk < 2; dk++)
-                    c[(di<<2)|(dj<<1)|(dk)] = rand_double[
+                    c[(di<<2)|(dj<<1)|(dk)] = rand_vec[
                         permutation_x[(i+di) & 255] ^
                         permutation_y[(j+dj) & 255] ^
                         permutation_z[(k+dk) & 255]
                     ];
 
         return TrilinearInterp(c, u, v, w);
+    }
+public:
+    PerlinNoise() noexcept {
+        rand_vec = new vec3d[CNT];
+        for (int i = 0; i < CNT; i++) rand_vec[i] = get_random_vec3d(-1, 1).normalize();
+        permutation_x = GetPermutation();
+        permutation_y = GetPermutation();
+        permutation_z = GetPermutation();
+    }
+    ~PerlinNoise() noexcept {
+        delete[] rand_vec;
+        delete[] permutation_x;
+        delete[] permutation_y;
+        delete[] permutation_z;
+    }
+    double Turb(const point3d& p) const override {
+        auto accum = 0.0;
+        auto temp_p = p;
+        auto weight = 1.0;
+
+        for (int i = 0; i < TURB_DEPTH; i++) {
+            accum += weight * GetNoise(temp_p);
+            weight *= 0.5;
+            temp_p *= 2;
+        }
+
+        return fabs(accum);
     }
 };
 

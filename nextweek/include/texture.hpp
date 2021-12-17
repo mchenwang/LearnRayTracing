@@ -57,11 +57,13 @@ public:
 class NoiseTexture : public Texture {
     std::shared_ptr<Noise> noise;
     Color color;
+    double scale;
 public:
     NoiseTexture() = delete;
-    NoiseTexture(std::shared_ptr<Noise> n, Color c = Color(1, 1, 1)) noexcept : noise(n), color(c) {}
+    NoiseTexture(std::shared_ptr<Noise> n, Color c = Color(1, 1, 1), double s = 1.) noexcept 
+    : noise(n), color(c), scale(s) {}
     Color GetTexture(const double u, const double v, const point3d& p) const override {
-        return color * noise->GetNoise(p);
+        return color * 0.5 * (1 + sin(scale * p.z + 10. * noise->Turb(p)));
     }
 };
 
