@@ -78,6 +78,7 @@ class ConfigManager {
         return GetVec3d(line);
     }
 public:
+    Color bgcolor = Color(0.7, 0.8, 1.);
     ConfigManager(const char* fileName = "config.data") noexcept {
         std::stringstream ss;
         ss << source_path << fileName;
@@ -141,6 +142,10 @@ public:
                     double t2 = GetDouble(line);
                     camera = make_shared<Camera>(o, up_dir, look_at, vfov, lr, dist, t1, t2);
                 }
+                else if (line.compare("BgColor") == 0) {
+                    std::getline(f, line);
+                    bgcolor = GetColor(line);
+                }
                 else if (line.compare("Solid") == 0) {
                     std::getline(f, line);
                     Color color = GetColor(line);
@@ -185,13 +190,19 @@ public:
                     if (index >= 0 && index < textures.size())
                         materials.push_back(make_shared<Metal>(textures[index], fuzz));
                 }
+                else if (line.compare("DiffuseLight") == 0) {
+                    std::getline(f, line);
+                    int index = GetDouble(line) - 1;
+                    if (index >= 0 && index < textures.size())
+                        materials.push_back(make_shared<DiffuseLight>(textures[index]));
+                }
                 else if (line.compare("Sphere") == 0) {
                     std::getline(f, line);
                     point3d o = GetPoint3d(line);
                     std::getline(f, line);
                     double r = GetDouble(line);
                     std::getline(f, line);
-                    int material_index = (int) GetDouble(line) -1 ;
+                    int material_index = (int) GetDouble(line) -1;
                     if (material_index < 0 || material_index >= materials.size()) std::cerr << "Sphere material error!\n";
                     else {
                         auto material = materials[material_index];
@@ -210,11 +221,24 @@ public:
                     std::getline(f, line);
                     double t2 = GetDouble(line);
                     std::getline(f, line);
-                    int material_index = (int) GetDouble(line) -1 ;
+                    int material_index = (int) GetDouble(line) -1;
                     if (material_index < 0 || material_index >= materials.size()) std::cerr << "Sphere material error!\n";
                     else {
                         auto material = materials[material_index];
                         objs.push_back(make_shared<MovingSphere>(t1, o1, t2, o2, r, material));
+                    }
+                }
+                else if (line.compare("XYRect") == 0) {
+                    std::getline(f, line);
+                    point3d p1 = GetPoint3d(line);
+                    std::getline(f, line);
+                    point3d p2 = GetPoint3d(line);
+                    std::getline(f, line);
+                    int material_index = (int) GetDouble(line) -1;
+                    if (material_index < 0 || material_index >= materials.size()) std::cerr << "XYRect material error!\n";
+                    else {
+                        auto material = materials[material_index];
+                        objs.push_back(make_shared<XYRect>(p1, p2, material));
                     }
                 }
             }

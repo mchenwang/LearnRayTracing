@@ -17,4 +17,11 @@ constexpr int max_depth = 50;
 
 constexpr double PI = 3.1415926535;
 
+#ifdef max
+#undef max
+#endif
+#ifdef min
+#undef min
+#endif
+
 #endif

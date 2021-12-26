@@ -9,6 +9,7 @@ shared_ptr<Camera> camera;
 vector<shared_ptr<Hittable>> objs;
 shared_ptr<BVH_Node> bvh_root;
 bool use_BVH = false;
+Color bgcolor = Color(0.7, 0.8, 1.);
 
 bool world_hit(const Ray& ray, hit_info& hit) {
     bool hit_flag = false;
@@ -40,12 +41,17 @@ Color ray_cast(const Ray& ray, int depth = max_depth) {
     hit_info hit;
     if (world_hit(ray, hit)) {
         Ray scatter_ray;
+        Color emitted_olor = hit.obj->get_material_emitted(hit.u, hit.v, hit.point);
+        Color scatted_color = Color(0, 0, 0);
         if (hit.obj->scatter(scatter_ray, hit)) {
-            return hit.obj->get_material_texture(hit.u, hit.v, hit.point) * ray_cast(scatter_ray, depth - 1);
+            scatted_color = hit.obj->get_material_texture(hit.u, hit.v, hit.point) * ray_cast(scatter_ray, depth - 1);
+            // if (scatted_color.r > 0.0001) cout<<scatted_color.r<<" "<<scatted_color.g<<" "<<scatted_color.b<<"\n";
         }
+        auto color = scatted_color + emitted_olor;
+        // if (color.r > 0.0001) cout<<color.r<<" "<<color.g<<" "<<color.b<<"\n";
+        return scatted_color + emitted_olor;
     }
-    double t = (ray.dir.y + 1) * 0.5;
-    return (1.0-t)*Color(1.0, 1.0, 1.0) + t*Color(0.5, 0.7, 1.0);
+    return bgcolor;
 }
 
 #ifdef MUTILTHREAD
@@ -159,6 +165,7 @@ void get_sample_world(ConfigManager* configManager) {
         camera = configManager->GetCamera();
         objs = configManager->GetObjects();
         use_BVH = configManager->CheckUseBVH();
+        bgcolor = configManager->bgcolor;
     }
 }
 
@@ -169,6 +176,7 @@ void get_complex_world(ConfigManager* configManager) {
     else {
         use_BVH = configManager->CheckUseBVH();
         camera = configManager->GetCamera();
+        bgcolor = configManager->bgcolor;
     }
 
     auto ground_texture = make_shared<CheckerTexture>(Color(0, 0, 0), Color(1, 1, 1));
@@ -242,7 +250,7 @@ int main(int argc, char *argv[])
 
     #ifdef INIT_WORLD_WITH_CONFIG
     ConfigManager* configManager = nullptr;
-    
+
     if (argc > 1) {
         int h = atoi(argv[1]);
         image = PPMImage(h, h * aspect_ratio);

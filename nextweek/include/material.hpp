@@ -38,6 +38,7 @@ public:
     virtual bool scatter(shared_ptr<scatter_info>& info) const = 0;
     // Color get_color_attenuation_coef() const { return attenuation_coef; }
     Color get_texture(const double u, const double v, const point3d& p) const { return texture->GetTexture(u, v, p); }
+    virtual Color emitted(double u, double v, const point3d& p) const { return Color(0,0,0); }
 };
 
 class Lambertian : public Material {
@@ -103,5 +104,15 @@ public:
 };
 
 const Dielectrics global_air(1.);
+
+class DiffuseLight : public Material {
+public:
+    DiffuseLight(shared_ptr<Texture>& texture) noexcept
+    : Material(texture) {}
+    bool scatter(shared_ptr<scatter_info>& info) const { return false; }
+    Color emitted(double u, double v, const point3d& p) const override {
+        return texture->GetTexture(u, v, p);
+    }
+};
 
 #endif

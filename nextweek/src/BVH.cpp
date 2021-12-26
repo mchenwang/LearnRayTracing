@@ -57,8 +57,8 @@ bool BVH_Node::hit(const Ray& ray, double t_min, double t_max, hit_info& ret) co
     bool hit_left = left->hit(ray, t_min, t_max, ret);
     bool hit_right = right->hit(ray, t_min, hit_left && ret.t < t_max ? ret.t : t_max, ret);
 
-    if (hit_left && std::dynamic_pointer_cast<Sphere>(left)) ret.obj = left;
-    if (hit_right && std::dynamic_pointer_cast<Sphere>(right)) ret.obj = right;
+    if (hit_left && (std::dynamic_pointer_cast<Sphere>(left) || std::dynamic_pointer_cast<XYRect>(left))) ret.obj = left;
+    if (hit_right && (std::dynamic_pointer_cast<Sphere>(right) || std::dynamic_pointer_cast<XYRect>(right))) ret.obj = right;
     return hit_left || hit_right;
 }
 

@@ -37,6 +37,7 @@ public:
     virtual void GetUV(double&, double&, const point3d&) const {}
     // Color get_material_attenuation_coef() const { return material->get_color_attenuation_coef(); }
     virtual Color get_material_texture(const double u, const double v, const point3d& p) const { return material->get_texture(u, v, p); }
+    Color get_material_emitted(const double u, const double v, const point3d& p) const { return material->emitted(u, v, p); }
 };
 
 class Sphere : public Hittable {
@@ -71,6 +72,21 @@ public:
     double get_radius() const { return r; }
 
     bool MovingSphere::bounding_box(const double, const double, AABB&) const override;
+};
+
+class XYRect : public Hittable {
+    point3d p1, p2;
+public:
+    XYRect() = default;
+    XYRect(double x1, double y1, double x2, double y2, double z, std::shared_ptr<Material> m) noexcept
+    : p1(x1, y1, z), p2(x2, y2, z), Hittable(m) {}
+    XYRect(point3d& p1_, point3d& p2_, std::shared_ptr<Material> m) noexcept
+    : p1(p1_), p2(p2_), Hittable(m) {}
+    
+    bool hit(const Ray& ray, double t_min, double t_max, hit_info& ret) const;
+    bool scatter(Ray& ray_out, const hit_info& hit) const;
+    bool bounding_box(const double, const double, AABB& output_box) const;
+    void GetUV(double&, double&, const point3d&) const;
 };
 
 #endif
