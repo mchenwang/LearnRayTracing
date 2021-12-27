@@ -52,13 +52,13 @@ bool BVH_Node::bbcmp(const std::shared_ptr<Hittable>& a, const std::shared_ptr<H
     return b1.get_min_point()[axis] < b2.get_min_point()[axis];
 }
 
-bool BVH_Node::hit(const Ray& ray, double t_min, double t_max, hit_info& ret) const {
+bool BVH_Node::hit(const Ray& ray, double t_min, double t_max, hit_info& ret) {
     if (!box.hit(ray, t_min, t_max)) return false;
     bool hit_left = left->hit(ray, t_min, t_max, ret);
     bool hit_right = right->hit(ray, t_min, hit_left && ret.t < t_max ? ret.t : t_max, ret);
 
-    if (hit_left && (std::dynamic_pointer_cast<Sphere>(left) || std::dynamic_pointer_cast<XYRect>(left))) ret.obj = left;
-    if (hit_right && (std::dynamic_pointer_cast<Sphere>(right) || std::dynamic_pointer_cast<XYRect>(right))) ret.obj = right;
+    // if (hit_left && (std::dynamic_pointer_cast<Sphere>(left) || std::dynamic_pointer_cast<XYRect>(left))) ret.obj = left;
+    // if (hit_right && (std::dynamic_pointer_cast<Sphere>(right) || std::dynamic_pointer_cast<XYRect>(right))) ret.obj = right;
     return hit_left || hit_right;
 }
 

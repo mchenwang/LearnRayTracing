@@ -36,7 +36,7 @@ public:
     bool scatter(Ray& ray_out, const hit_info& hit) const;
     bool bounding_box(const double, const double, AABB& output_box) const;
 
-    bool hit(const Ray&, double, double, hit_info&) const;
+    bool hit(const Ray&, double, double, hit_info&);
 };
 
 #endif

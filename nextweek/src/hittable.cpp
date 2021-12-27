@@ -8,7 +8,7 @@
 // (ray.dir * t + (ray.o - o))^2 == r^2
 // ray.dir^2 * t^2 + 2*ray.dir*(ray.o-o) * t + ((ray.o-o)^2 - r^2) == 0
 // 当 b^2 - 4ac >=0 时，t 有解
-bool Sphere::hit(const Ray& ray, double t_min, double t_max, hit_info& ret) const {
+bool Sphere::hit(const Ray& ray, double t_min, double t_max, hit_info& ret) {
     vec3d or = ray.o - get_origin(ray.time);
     double b = 2 * dot(ray.dir, or);
     double a = ray.dir.length2();
@@ -30,6 +30,7 @@ bool Sphere::hit(const Ray& ray, double t_min, double t_max, hit_info& ret) cons
     }
     else ret.inside_obj = false;
     Sphere::GetUV(ret.u, ret.v, ret.point);
+    ret.obj = shared_from_this();
     return true;
 }
 
@@ -99,7 +100,7 @@ bool MovingSphere::bounding_box(const double time1, const double time2, AABB& ou
 #pragma region XYRect
 // o.z+d.z*t == z
 // t = (z - o.z) / d.z
-bool XYRect::hit(const Ray& ray, double t_min, double t_max, hit_info& ret) const {
+bool XYRect::hit(const Ray& ray, double t_min, double t_max, hit_info& ret) {
     double t = (p1.z - ray.o.z) / ray.dir.z;
     if (t < t_min || t > t_max) return false;
     auto p = ray.at(t);
@@ -117,6 +118,7 @@ bool XYRect::hit(const Ray& ray, double t_min, double t_max, hit_info& ret) cons
     }
     else ret.inside_obj = false;
     XYRect::GetUV(ret.u, ret.v, ret.point);
+    ret.obj = shared_from_this();
     return true;
 }
 bool XYRect::scatter(Ray& ray_out, const hit_info& hit) const {

@@ -31,7 +31,7 @@ public:
     Hittable(Hittable&& temp) noexcept { std::swap(material, temp.material); }
     Hittable& operator=(const Hittable& temp) { material = temp.material; return *this; }
     Hittable& operator=(Hittable&& temp) { std::swap(material, temp.material); return *this; }
-    virtual bool hit(const Ray& ray, double t_min, double t_max, hit_info& ret) const = 0;
+    virtual bool hit(const Ray& ray, double t_min, double t_max, hit_info& ret) = 0;
     virtual bool scatter(Ray& ray_out, const hit_info& hit) const = 0;
     virtual bool bounding_box(const double, const double, AABB& output_box) const = 0;
     virtual void GetUV(double&, double&, const point3d&) const {}
@@ -40,7 +40,7 @@ public:
     Color get_material_emitted(const double u, const double v, const point3d& p) const { return material->emitted(u, v, p); }
 };
 
-class Sphere : public Hittable {
+class Sphere : public Hittable, public std::enable_shared_from_this<Sphere> {
 protected:
     point3d o;
     double r;
@@ -51,7 +51,7 @@ public:
     virtual point3d get_origin(const double) const { return o; }
     double get_radius() const { return r; }
     
-    bool hit(const Ray&, double, double, hit_info&) const override;
+    bool hit(const Ray&, double, double, hit_info&) override;
     bool scatter(Ray&, const hit_info&) const override;
     bool bounding_box(const double, const double, AABB&) const override;
 
@@ -74,7 +74,7 @@ public:
     bool MovingSphere::bounding_box(const double, const double, AABB&) const override;
 };
 
-class XYRect : public Hittable {
+class XYRect : public Hittable, public std::enable_shared_from_this<XYRect> {
     point3d p1, p2;
 public:
     XYRect() = default;
@@ -83,10 +83,10 @@ public:
     XYRect(point3d& p1_, point3d& p2_, std::shared_ptr<Material> m) noexcept
     : p1(p1_), p2(p2_), Hittable(m) {}
     
-    bool hit(const Ray& ray, double t_min, double t_max, hit_info& ret) const;
-    bool scatter(Ray& ray_out, const hit_info& hit) const;
-    bool bounding_box(const double, const double, AABB& output_box) const;
-    void GetUV(double&, double&, const point3d&) const;
+    bool hit(const Ray& ray, double t_min, double t_max, hit_info& ret) override;
+    bool scatter(Ray& ray_out, const hit_info& hit) const override;
+    bool bounding_box(const double, const double, AABB& output_box) const override;
+    void GetUV(double&, double&, const point3d&) const override;
 };
 
 #endif
