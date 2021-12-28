@@ -238,7 +238,7 @@ public:
                     if (material_index < 0 || material_index >= materials.size()) std::cerr << "XYRect material error!\n";
                     else {
                         auto material = materials[material_index];
-                        objs.push_back(make_shared<XYRect>(p1, p2, material));
+                        objs.push_back(make_shared<Rect<2>>(p1, p2, material));
                     }
                 }
             }

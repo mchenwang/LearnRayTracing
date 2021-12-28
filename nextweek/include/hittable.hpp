@@ -74,19 +74,77 @@ public:
     bool MovingSphere::bounding_box(const double, const double, AABB&) const override;
 };
 
-class XYRect : public Hittable, public std::enable_shared_from_this<XYRect> {
+template<uint32_t axis>
+class Rect : public Hittable, public std::enable_shared_from_this<Rect<axis>> {
+    static_assert(axis == 0 || axis == 1 || axis == 2);
     point3d p1, p2;
+
+    static uint32_t GetNextAxis(uint32_t now) {
+        uint32_t next = now + 1;
+        return next > 2 ? 0 : next;
+    }
 public:
-    XYRect() = default;
-    XYRect(double x1, double y1, double x2, double y2, double z, std::shared_ptr<Material> m) noexcept
-    : p1(x1, y1, z), p2(x2, y2, z), Hittable(m) {}
-    XYRect(point3d& p1_, point3d& p2_, std::shared_ptr<Material> m) noexcept
+    Rect() = default;
+    Rect(point3d& p1_, point3d& p2_, std::shared_ptr<Material> m) noexcept
     : p1(p1_), p2(p2_), Hittable(m) {}
     
-    bool hit(const Ray& ray, double t_min, double t_max, hit_info& ret) override;
-    bool scatter(Ray& ray_out, const hit_info& hit) const override;
-    bool bounding_box(const double, const double, AABB& output_box) const override;
-    void GetUV(double&, double&, const point3d&) const override;
+    bool hit(const Ray& ray, double t_min, double t_max, hit_info& ret) override {
+        double t = (p1[axis] - ray.o[axis]) / ray.dir[axis];
+        if (t < t_min || t > t_max) return false;
+        auto p = ray.at(t);
+        uint32_t t_axis = GetNextAxis(axis);
+        if ((p[t_axis] < p1[t_axis] && p[t_axis] < p2[t_axis]) ||
+            (p[t_axis] > p1[t_axis] && p[t_axis] > p2[t_axis]))
+            return false;
+        t_axis = GetNextAxis(t_axis);
+        if ((p[t_axis] < p1[t_axis] && p[t_axis] < p2[t_axis]) ||
+            (p[t_axis] > p1[t_axis] && p[t_axis] > p2[t_axis]))
+            return false;
+        ret.t = t;
+        ret.point = p;
+        ret.normal = vec3d(0, 0, 1);
+        if (dot(ret.normal, ray.dir) > 0.) {
+            ret.normal = vec3d() - ret.normal;
+            ret.inside_obj = true;
+        }
+        else ret.inside_obj = false;
+        GetUV(ret.u, ret.v, ret.point);
+        ret.obj = shared_from_this();
+        return true;
+    }
+    bool scatter(Ray& ray_out, const hit_info& hit) const override {
+        shared_ptr<scatter_info> info;
+        if (std::dynamic_pointer_cast<Dielectrics>(material)) {
+            auto dielectrics_material = std::dynamic_pointer_cast<Dielectrics>(material);
+            double refraction_ratio = global_air.get_refraction_eta() / dielectrics_material->get_refraction_eta();
+            
+            info = std::make_shared<dielectrics_scatter_info>(hit.point, hit.normal, hit.cast_ray_dir, hit.ray_time, refraction_ratio);
+        }
+        else info = std::make_shared<scatter_info>(hit.point, hit.normal, hit.cast_ray_dir, hit.ray_time);
+        bool is_scatter = material->scatter(info);
+        ray_out = info->scatter_ray;
+        return is_scatter;
+    }
+    bool bounding_box(const double, const double, AABB& output_box) const override {
+        auto aabb_p1 = p1;
+        auto aabb_p2 = p2;
+        aabb_p1[axis] -= 0.0001;
+        aabb_p2[axis] += 0.0001;
+        output_box = AABB(aabb_p1, aabb_p2);
+        return true;
+    }
+    void GetUV(double& u, double& v, const point3d& p) const override {
+        auto t = GetNextAxis(axis);
+        double maxx = std::max(p1[t], p2[t]);
+        double minx = std::min(p1[t], p2[t]);
+        double w = maxx - minx;
+        u = (p[t] - minx) / w;
+        
+        t = GetNextAxis(t);
+        double maxy = std::max(p1[t], p2[t]);
+        double miny = std::min(p1[t], p2[t]);
+        double h = maxy - miny;
+        v = (p.y - miny) / h;
+    }
 };
-
 #endif
