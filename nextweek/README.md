@@ -23,4 +23,4 @@
 >
 >  <img src="./texture3.jpg" style="zoom:33%;" /><img src="./texture2.jpg" style="zoom:33%;" />
 >
->- -
+>- Cornell Box 实现有问题，暂时不会改。。。

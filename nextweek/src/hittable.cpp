@@ -96,3 +96,16 @@ bool MovingSphere::bounding_box(const double time1, const double time2, AABB& ou
     return true;
 }
 #pragma endregion Sphere
+
+// bool XYRect::bounding_box(const double, const double, AABB& output_box) const {
+//     output_box = AABB(point3d(p1.x, p1.y, p1.z - 0.0001), point3d(p2.x, p2.y, p2.z + 0.0001));
+//     return true;
+// }
+// bool XZRect::bounding_box(const double, const double, AABB& output_box) const {
+//     output_box = AABB(point3d(p1.x, p1.y - 0.0001, p1.z), point3d(p2.x, p2.y + 0.0001, p2.z));
+//     return true;
+// }
+// bool YZRect::bounding_box(const double, const double, AABB& output_box) const {
+//     output_box = AABB(point3d(p1.x - 0.0001, p1.y, p1.z), point3d(p2.x + 0.0001, p2.y, p2.z));
+//     return true;
+// }

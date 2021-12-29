@@ -79,6 +79,10 @@ class ConfigManager {
     }
 public:
     Color bgcolor = Color(0.7, 0.8, 1.);
+    double window_ar = default_aspect_ratio;
+    double window_w = default_width;
+    double window_h = default_height;
+
     ConfigManager(const char* fileName = "config.data") noexcept {
         std::stringstream ss;
         ss << source_path << fileName;
@@ -121,7 +125,7 @@ public:
                     double t1 = GetDouble(line);
                     std::getline(f, line);
                     double t2 = GetDouble(line);
-                    camera = make_shared<Camera>(o, up_dir, look_at, vfov, lr, dist, t1, t2);
+                    camera = make_shared<Camera>(o, up_dir, look_at, vfov, lr, dist, t1, t2, window_ar);
                 }
                 else if (line.compare("XCamera") == 0 && !is_sample_world) {
                     std::getline(f, line);
@@ -140,7 +144,19 @@ public:
                     double t1 = GetDouble(line);
                     std::getline(f, line);
                     double t2 = GetDouble(line);
-                    camera = make_shared<Camera>(o, up_dir, look_at, vfov, lr, dist, t1, t2);
+                    camera = make_shared<Camera>(o, up_dir, look_at, vfov, lr, dist, t1, t2, window_ar);
+                }
+                else if (line.compare("aspect_ratio") == 0) {
+                    std::getline(f, line);
+                    window_ar = GetDouble(line);
+                }
+                else if (line.compare("Height") == 0) {
+                    std::getline(f, line);
+                    window_h = GetDouble(line);
+                }
+                else if (line.compare("Width") == 0) {
+                    std::getline(f, line);
+                    window_w = line[0] == '-' ? window_h * window_ar : GetDouble(line);
                 }
                 else if (line.compare("BgColor") == 0) {
                     std::getline(f, line);
@@ -228,17 +244,25 @@ public:
                         objs.push_back(make_shared<MovingSphere>(t1, o1, t2, o2, r, material));
                     }
                 }
-                else if (line.compare("XYRect") == 0) {
+                else if (line.compare("Rect") == 0) {
+                    std::getline(f, line);
+                    char axis = line[0];
                     std::getline(f, line);
                     point3d p1 = GetPoint3d(line);
                     std::getline(f, line);
                     point3d p2 = GetPoint3d(line);
                     std::getline(f, line);
                     int material_index = (int) GetDouble(line) -1;
-                    if (material_index < 0 || material_index >= materials.size()) std::cerr << "XYRect material error!\n";
+                    if (material_index < 0 || material_index >= materials.size()) std::cerr << "Rect material error!\n";
                     else {
                         auto material = materials[material_index];
-                        objs.push_back(make_shared<Rect<2>>(p1, p2, material));
+                        if (axis == 'x') objs.push_back(make_shared<Rect<0>>(p1, p2, material));
+                        else if (axis == 'y') objs.push_back(make_shared<Rect<1>>(p1, p2, material));
+                        else if (axis == 'z') objs.push_back(make_shared<Rect<2>>(p1, p2, material));
+                        // if (axis == 'x') objs.push_back(make_shared<YZRect>(p1, p2, material));
+                        // else if (axis == 'y') objs.push_back(make_shared<XZRect>(p1, p2, material));
+                        // else if (axis == 'z') objs.push_back(make_shared<XYRect>(p1, p2, material));
+                        else std::cerr << "Rect error!\n";
                     }
                 }
             }

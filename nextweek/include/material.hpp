@@ -48,7 +48,7 @@ public:
     bool scatter(shared_ptr<scatter_info>& info) const override {
         // one week 中 An Alternative Diffuse Formulation 说明正确的漫反射反射光线的方向是通过随机生成半球的方向得到，
         // 这里使用法线与随机单位球方向的向量和的方向近似，可能生成反正光线方向的概率不相同，不过个人感觉影响不大
-        // vec3d diffuse_ray_dir = get_random_vec3d_in_hemisphere();
+        // vec3d diffuse_ray_dir = info->scatter_point_nm + random_unit_vector();
         vec3d diffuse_ray_dir = info->scatter_point_nm + get_random_vec3d(-1., 1.).normalize();
         // 0向量特殊处理
         if (diffuse_ray_dir.is_zero_vec()) diffuse_ray_dir = info->scatter_point_nm;
@@ -107,8 +107,8 @@ const Dielectrics global_air(1.);
 
 class DiffuseLight : public Material {
 public:
-    DiffuseLight(shared_ptr<Texture>& texture) noexcept
-    : Material(texture) {}
+    DiffuseLight(shared_ptr<Texture>& texture) noexcept : Material(texture) {}
+    DiffuseLight(Color& color) noexcept : Material(color) {}
     bool scatter(shared_ptr<scatter_info>& info) const { return false; }
     Color emitted(double u, double v, const point3d& p) const override {
         return texture->GetTexture(u, v, p);

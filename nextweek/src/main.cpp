@@ -10,6 +10,7 @@ vector<shared_ptr<Hittable>> objs;
 shared_ptr<BVH_Node> bvh_root;
 bool use_BVH = false;
 Color bgcolor = Color(0.7, 0.8, 1.);
+double aspect_ratio = default_aspect_ratio;
 
 bool world_hit(const Ray& ray, hit_info& hit) {
     bool hit_flag = false;
@@ -41,15 +42,11 @@ Color ray_cast(const Ray& ray, int depth = max_depth) {
     hit_info hit;
     if (world_hit(ray, hit)) {
         Ray scatter_ray;
-        Color emitted_olor = hit.obj->get_material_emitted(hit.u, hit.v, hit.point);
-        Color scatted_color = Color(0, 0, 0);
+        Color color = hit.obj->get_material_emitted(hit.u, hit.v, hit.point);
         if (hit.obj->scatter(scatter_ray, hit)) {
-            scatted_color = hit.obj->get_material_texture(hit.u, hit.v, hit.point) * ray_cast(scatter_ray, depth - 1);
-            // if (scatted_color.r > 0.0001) cout<<scatted_color.r<<" "<<scatted_color.g<<" "<<scatted_color.b<<"\n";
+            color = color + (hit.obj->get_material_texture(hit.u, hit.v, hit.point) * ray_cast(scatter_ray, depth - 1));
         }
-        auto color = scatted_color + emitted_olor;
-        // if (color.r > 0.0001) cout<<color.r<<" "<<color.g<<" "<<color.b<<"\n";
-        return scatted_color + emitted_olor;
+        return color;
     }
     return bgcolor;
 }
@@ -162,7 +159,10 @@ void get_sample_world(ConfigManager* configManager) {
         objs.push_back(make_shared<Sphere>(point3d( 1.,    0.0, .0),   0.5, material_right));
     }
     else {
+        image = PPMImage(configManager->window_h, configManager->window_w);
+        aspect_ratio = configManager->window_ar;
         camera = configManager->GetCamera();
+        camera->aspect_ratio = aspect_ratio;
         objs = configManager->GetObjects();
         use_BVH = configManager->CheckUseBVH();
         bgcolor = configManager->bgcolor;
@@ -174,8 +174,11 @@ void get_complex_world(ConfigManager* configManager) {
         camera = make_shared<Camera>(point3d(13,2,3), default_up_dir, default_look_at, 20, 0.02, 13.3, 0, 1);
     }
     else {
+        image = PPMImage(configManager->window_h, configManager->window_w);
+        aspect_ratio = configManager->window_ar;
         use_BVH = configManager->CheckUseBVH();
         camera = configManager->GetCamera();
+        camera->aspect_ratio = aspect_ratio;
         bgcolor = configManager->bgcolor;
     }
 
@@ -251,13 +254,9 @@ int main(int argc, char *argv[])
     #ifdef INIT_WORLD_WITH_CONFIG
     ConfigManager* configManager = nullptr;
 
-    if (argc > 1) {
-        int h = atoi(argv[1]);
-        image = PPMImage(h, h * aspect_ratio);
-    }
-    if (argc > 2) configManager = new ConfigManager(argv[2]);
+    if (argc > 1) configManager = new ConfigManager(argv[1]);
     
-    if (configManager == nullptr) configManager = new ConfigManager();
+    if (configManager == nullptr) configManager = new ConfigManager("cornell.data");
     configManager->GetConfig();
 
     init_world(configManager);

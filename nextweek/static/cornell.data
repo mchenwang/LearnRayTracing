@@ -1,0 +1,77 @@
+BVH
+SAMPLE_WORLD
+BgColor
+0 0 0
+aspect_ratio
+1
+Height
+600
+Width
+-
+# 相机参数，分别是相机位置、向上方向、看向点位置、视角度数、透镜半径、透镜到聚焦面的距离、快门起止时间
+Camera
+0 0 1000
+0 1 0
+0 0 0
+90
+0
+1
+0
+1
+# 纹理
+Solid
+15 15 15
+Solid
+0.65 0.05 0.05
+]Solid
+]0.73 0.73 0.73
+Solid
+1 1 1
+Solid
+0.12 0.45 0.15
+# 材质种类，参数是纹理序号
+DiffuseLight
+1
+Lambertian
+2
+Lambertian
+3
+Lambertian
+4
+# 
+# right
+Rect
+x
+250 -250 0
+250 250 500
+2
+# left
+Rect
+x
+-250 -250 0
+-250 250 500
+4
+# light
+Rect
+y
+-65 249 200
+65 249 300
+1
+# back
+Rect
+z
+-250 -250 0
+250 250 0
+3
+# top
+Rect
+y
+250 250 0
+-250 250 500
+3
+# bottom
+Rect
+y
+250 -250 0
+-250 -250 500
+3

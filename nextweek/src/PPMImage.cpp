@@ -16,15 +16,17 @@ PPMImage::PPMImage(int h, int w) noexcept
 : height(h), width(w) {
     image = new Color[h*w];
 }
-PPMImage::PPMImage(const PPMImage& other) noexcept {
+PPMImage::PPMImage(PPMImage&& other) noexcept {
+    image = other.image;
+    other.image = nullptr;
     height = other.height;
     width = other.width;
-    std::copy(other.image, other.image + width * height, image);
 }
-PPMImage& PPMImage::operator=(const PPMImage& other) noexcept {
+PPMImage& PPMImage::operator=(PPMImage&& other) noexcept {
+    image = other.image;
+    other.image = nullptr;
     height = other.height;
     width = other.width;
-    std::copy(other.image, other.image + width * height, image);
     return *this;
 }
 

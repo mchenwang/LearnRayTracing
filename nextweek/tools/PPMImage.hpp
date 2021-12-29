@@ -13,8 +13,8 @@ public:
     PPMImage() noexcept;
     ~PPMImage() noexcept;
     PPMImage(int h, int w) noexcept;
-    PPMImage(const PPMImage& other) noexcept;
-    PPMImage& operator=(const PPMImage& other) noexcept;
+    PPMImage(PPMImage&& other) noexcept;
+    PPMImage& operator=(PPMImage&& other) noexcept;
     void set_pixel(const int u, const int v, const Color& c);
     Color get_color(const int u, const int v);
     int get_height() const;

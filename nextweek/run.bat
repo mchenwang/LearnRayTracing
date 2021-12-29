@@ -6,5 +6,5 @@ if %1 == 0 (
     cmake --build build --target raytracer
 )
 set config_name=%2
-.\target\Debug\raytracer.exe 300 %config_name%
+.\target\Debug\raytracer.exe %config_name%
 start image.ppm
